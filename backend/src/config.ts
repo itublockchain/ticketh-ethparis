@@ -1,5 +1,6 @@
 import type { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { config } from 'dotenv';
+import { Event } from 'src/entities/Event.entity';
 
 config();
 
@@ -11,7 +12,7 @@ export const CONFIG: Config = {
     username: process.env.DB_USER as string,
     password: process.env.DB_PASSWORD as string,
     database: process.env.DB_NAME as string,
-    entities: [],
+    entities: [Event],
     synchronize: true,
     autoLoadEntities: true,
   } as TypeOrmModuleOptions,

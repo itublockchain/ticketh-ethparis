@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CONFIG } from 'src/config';
+import { EventModule } from 'src/modules/event/Event.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -14,6 +15,8 @@ import { CONFIG } from 'src/config';
       },
     }),
     /* REMOVE COMMENTS FOR DB CONNECTION */
+
+    EventModule,
   ],
   controllers: [],
   providers: [],
