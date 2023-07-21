@@ -13,6 +13,7 @@
     "@nomicfoundation/hardhat-toolbox": "^3.0.0"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^4.9.2"
+    "@openzeppelin/contracts": "^4.9.2",
+    "@ethereum-attestation-service/eas-contracts": "^0.28.1"
   }
 }
