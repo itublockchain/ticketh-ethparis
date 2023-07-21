@@ -7,7 +7,11 @@ import { StatusBar } from 'expo-status-bar';
 import * as React from 'react';
 import { RecoilRoot } from 'recoil';
 
+import { Navbar } from './components/Navbar';
+import { Paths } from './constants';
+import { useScreenOptions } from './hooks';
 import { Intro } from './pages';
+import { Events } from './pages/Events';
 import { usePoppins } from './styles/theme';
 import { tickethQueryClient } from './utils/ReactQueryUtils';
 
@@ -43,10 +47,21 @@ export default function App(): JSX.Element | null {
 
 function Main(): JSX.Element {
     const { isConnected } = useWalletConnectModal();
+    const screenOptions = useScreenOptions();
 
     return (
         <NavigationContainer>
-            {isConnected ? null : <Intro />}
+            {isConnected ? (
+                <StackNavigator.Navigator>
+                    <StackNavigator.Screen
+                        options={screenOptions}
+                        name={Paths.EVENTS}
+                        component={Events}
+                    />
+                </StackNavigator.Navigator>
+            ) : (
+                <Intro />
+            )}
         </NavigationContainer>
     );
 }
