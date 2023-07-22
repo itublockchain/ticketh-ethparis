@@ -1,5 +1,13 @@
+# NodeJS
 node_modules/
+
+# Hardhat
 artifacts/
 typechain-types/
+
+# MacOS
 .DS_Store
+
+# Misc
 *cache.json
+.env
