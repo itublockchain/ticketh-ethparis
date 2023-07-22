@@ -4,6 +4,7 @@ pragma solidity ^0.8.19;
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./interfaces/ITicketFactory.sol";
+import "./interfaces/IEventManager.sol";
 
 contract TicketFactory is ITicketFactory, ERC1155, Ownable {
     // Token identifiers
@@ -12,12 +13,15 @@ contract TicketFactory is ITicketFactory, ERC1155, Ownable {
 
     bool public immutable isMainChain;
     uint256 public ticketID;
+    IEventManager public eventManager;
     mapping(uint256 => Ticket) public ticketInfo;
     mapping(address => mapping(uint256 => bool)) public locks;
 
     /// @param isMain bool - Specify the current deploying chain is the main chain
-    constructor(bool isMain) ERC1155("") {
+    /// @param manager address - Address of the EventManager contract for attestation
+    constructor(bool isMain, address manager) ERC1155("") {
         isMainChain = isMain;
+        eventManager = IEventManager(manager);
     }
 
     /// @inheritdoc ITicketFactory
@@ -59,11 +63,24 @@ contract TicketFactory is ITicketFactory, ERC1155, Ownable {
         locks[msg.sender][tID] = true;
         payable(msg.sender).transfer(ticket.price);
 
-        attest();
+        attest(ticket);
     }
 
-    function attest() private {
-        if (isMainChain) {} else {}
+    function attest(Ticket memory ticket) private {
+        if (isMainChain) {
+            eventManager.addEventAttestation(
+                keccak256(abi.encodePacked(ticket.domain, ticket.name)),
+                msg.sender,
+                EventData({
+                    eventType: EventDataType.Attendance,
+                    name: ticket.name,
+                    extraData: ""
+                })
+            );
+        } 
+        // else {
+        // FIXME: Call other chains to create attestations
+        // }
     }
 
     /**
