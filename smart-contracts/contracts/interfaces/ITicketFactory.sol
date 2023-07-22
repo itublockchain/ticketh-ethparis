@@ -34,5 +34,5 @@ interface ITicketFactory is IERC1155 {
      * @param ticket Ticket - Ticket data
      * @dev Creates an attestation for the ticket, works after cross chain message in external call
      */
-    function attest(Ticket memory ticket) external;
+    function attest(Ticket memory ticket, address user) external;
 }

@@ -11,6 +11,7 @@ contract TicketFactory is ITicketFactory, ERC1155, Ownable {
     // Token identifiers
     string public constant name = "Ticketh";
     string public constant symbol = "TETH";
+    uint64 constant RECEIVER_CHAIN_ID = 16015286601757825753;
 
     bool public immutable isMainChain;
     uint256 public ticketID;
@@ -19,6 +20,9 @@ contract TicketFactory is ITicketFactory, ERC1155, Ownable {
     Messenger public messenger;
     mapping(uint256 => Ticket) public ticketInfo;
     mapping(address => mapping(uint256 => bool)) public locks;
+
+    event TicketInitiated(uint256 ticketID, Ticket ticket);
+    event Attestation(address user);
 
     /// @param isMain bool - Specify the current deploying chain is the main chain
     /// @param manager address - Address of the EventManager contract for attestation
@@ -38,6 +42,8 @@ contract TicketFactory is ITicketFactory, ERC1155, Ownable {
 
         ticketID++;
         ticketInfo[ticketID] = ticket;
+
+        emit TicketInitiated(ticketID, ticket);
     }
 
     /// @inheritdoc ITicketFactory
@@ -68,15 +74,15 @@ contract TicketFactory is ITicketFactory, ERC1155, Ownable {
         locks[msg.sender][tID] = true;
         payable(msg.sender).transfer(ticket.price);
 
-        attest(ticket);
+        attest(ticket, msg.sender);
     }
 
     /// @inheritdoc ITicketFactory
-    function attest(Ticket memory ticket) public onlyMessenger {
+    function attest(Ticket memory ticket, address user) public onlyMessenger {
         if (isMainChain) {
             eventManager.addEventAttestation(
                 keccak256(abi.encodePacked(ticket.domain, ticket.name)),
-                msg.sender,
+                user,
                 EventData({
                     eventType: EventDataType.Attendance,
                     name: ticket.name,
@@ -85,14 +91,16 @@ contract TicketFactory is ITicketFactory, ERC1155, Ownable {
             );
         } 
         else {
-            bytes memory data = abi.encode(ticket);
+            bytes memory data = abi.encode(ticket, user);
 
             messenger.sendMessagePayLINK(
-                16015286601757825753,
+                RECEIVER_CHAIN_ID,
                 receiver,
                 string(data)
             );
         }
+
+        emit Attestation(user);
     }
 
     /**

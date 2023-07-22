@@ -296,8 +296,8 @@ contract Messenger is CCIPReceiver, OwnerIsCreator {
         lastReceivedMessageId = any2EvmMessage.messageId; // fetch the messageId
         lastReceivedText = abi.decode(any2EvmMessage.data, (string)); // abi-decoding of the sent text
 
-        Ticket memory lastReceivedTicket = abi.decode(any2EvmMessage.data, (Ticket)); // abi-decoding of the sent text
-        factory.attest(lastReceivedTicket);
+        (Ticket memory lastReceivedTicket, address user) = abi.decode(any2EvmMessage.data, (Ticket, address)); // abi-decoding of the sent text
+        factory.attest(lastReceivedTicket, user);
 
         emit MessageReceived(
             any2EvmMessage.messageId,
