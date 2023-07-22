@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { CONFIG } from 'src/config';
 import { EasModule } from 'src/modules/eas/Eas.module';
 import { EventModule } from 'src/modules/event/Event.module';
+import { NFTModule } from 'src/modules/nft/NFT.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -19,6 +20,7 @@ import { EventModule } from 'src/modules/event/Event.module';
 
     EventModule,
     EasModule,
+    NFTModule,
   ],
   controllers: [],
   providers: [],

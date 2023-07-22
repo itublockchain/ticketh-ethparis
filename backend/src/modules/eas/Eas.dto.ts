@@ -33,6 +33,14 @@ export class AttestationDto {
   version: number;
 }
 
+export class AttestationResponseDto extends AttestationDto {
+  @ApiProperty()
+  eventId: string;
+
+  @ApiProperty()
+  ticketId: string;
+}
+
 export class AttestationCreateDto {
   @ApiProperty()
   @IsNotEmpty()
