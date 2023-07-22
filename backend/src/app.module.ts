@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CONFIG } from 'src/config';
+import { EasModule } from 'src/modules/eas/Eas.module';
 import { EventModule } from 'src/modules/event/Event.module';
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { EventModule } from 'src/modules/event/Event.module';
     /* REMOVE COMMENTS FOR DB CONNECTION */
 
     EventModule,
+    EasModule,
   ],
   controllers: [],
   providers: [],

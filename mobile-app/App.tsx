@@ -7,10 +7,10 @@ import { StatusBar } from 'expo-status-bar';
 import * as React from 'react';
 import { RecoilRoot } from 'recoil';
 
-import { Navbar } from './components/Navbar';
 import { Paths } from './constants';
 import { useScreenOptions } from './hooks';
-import { Intro } from './pages';
+import { Intro, MyTickeths } from './pages';
+import { Account } from './pages/Account';
 import { Events } from './pages/Events';
 import { usePoppins } from './styles/theme';
 import { tickethQueryClient } from './utils/ReactQueryUtils';
@@ -57,6 +57,16 @@ function Main(): JSX.Element {
                         options={screenOptions}
                         name={Paths.EVENTS}
                         component={Events}
+                    />
+                    <StackNavigator.Screen
+                        options={screenOptions}
+                        name={Paths.MY_TICKETHS}
+                        component={MyTickeths}
+                    />
+                    <StackNavigator.Screen
+                        options={screenOptions}
+                        name={Paths.ACCOUNT}
+                        component={Account}
                     />
                 </StackNavigator.Navigator>
             ) : (

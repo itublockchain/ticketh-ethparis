@@ -1,23 +1,24 @@
 import type { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { config } from 'dotenv';
+import { Attestation } from 'src/entities/Attestation.entity';
 import { Event } from 'src/entities/Event.entity';
+import { Environment } from 'src/utils/Environment';
 
 config();
 
 export const CONFIG: Config = {
   MYSQL: {
     type: 'mysql',
-    host: process.env.DB_HOST as string,
-    port: Number(process.env.DB_PORT),
-    username: process.env.DB_USER as string,
-    password: process.env.DB_PASSWORD as string,
-    database: process.env.DB_NAME as string,
-    entities: [Event],
+    host: Environment.DB_HOST,
+    port: Environment.DB_PORT,
+    username: Environment.DB_USER,
+    password: Environment.DB_PASSWORD,
+    database: Environment.DB_NAME,
+    entities: [Event, Attestation],
     synchronize: true,
-    autoLoadEntities: true,
   } as TypeOrmModuleOptions,
-  PORT: Number(process.env.PORT),
-  APP_CORS: process.env.APP_CORS,
+  PORT: Environment.PORT,
+  APP_CORS: Environment.APP_CORS,
   APP_NAME: 'Ticketh',
 };
 

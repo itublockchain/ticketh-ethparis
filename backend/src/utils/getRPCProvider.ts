@@ -1,13 +1,13 @@
 import { ethers } from 'ethers';
-
-export class JsonRpcProvider extends ethers.providers.JsonRpcProvider {}
+import { Environment } from 'src/utils/Environment';
 
 export type ProviderEventFilter = {
   address: string;
   topics: Array<string>;
 };
 
-export const getRpcProvider = (): JsonRpcProvider => {
-  const provider = new JsonRpcProvider(process.env.NETWORK_RPC_URL);
-  return provider;
+export const getRpcProvider = (): ethers.providers.JsonRpcProvider => {
+  return new ethers.providers.JsonRpcProvider(
+    Environment.ALCHEMY_URL ?? Environment.NETWORK_RPC_URL,
+  );
 };

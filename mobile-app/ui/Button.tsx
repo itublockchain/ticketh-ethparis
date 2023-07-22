@@ -116,6 +116,9 @@ export const styles = StyleSheet.create({
     },
     light: {
         backgroundColor: colors.light,
+        borderStyle: 'solid',
+        borderColor: colors.secondary,
+        borderWidth: 1,
     },
     textprimary: {
         color: '#fff',

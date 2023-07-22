@@ -21,6 +21,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@ethereum-attestation-service/eas-sdk": "0.29.0",
     "@nestjs/common": "9.0.0",
     "@nestjs/config": "2.2.0",
     "@nestjs/core": "9.0.0",
@@ -32,12 +33,14 @@
     "class-validator": "0.14.0",
     "csurf": "1.11.0",
     "ethers": "5.7.0",
+    "graphql-request": "^6.1.0",
     "helmet": "6.0.1",
     "mysql2": "2.3.3",
     "reflect-metadata": "0.1.13",
     "rimraf": "3.0.2",
     "rxjs": "7.2.0",
-    "typeorm": "0.3.11"
+    "typeorm": "0.3.11",
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
     "@nestjs/cli": "9.0.0",
@@ -48,6 +51,7 @@
     "@types/jest": "28.1.8",
     "@types/node": "16.0.0",
     "@types/supertest": "2.0.11",
+    "@types/uuid": "^9.0.2",
     "@typescript-eslint/eslint-plugin": "5.0.0",
     "@typescript-eslint/parser": "5.0.0",
     "eslint": "8.0.1",

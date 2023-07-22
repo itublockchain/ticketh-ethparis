@@ -29,4 +29,10 @@ interface ITicketFactory is IERC1155 {
      * @dev If the token is refundable, the user can get a refund by this function, also creates attestations
      */
     function getRefund(uint256 tID) external;
+
+    /**
+     * @param ticket Ticket - Ticket data
+     * @dev Creates an attestation for the ticket, works after cross chain message in external call
+     */
+    function attest(Ticket memory ticket, address user) external;
 }
