@@ -4,6 +4,7 @@ pragma solidity ^0.8.19;
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./interfaces/ITicketFactory.sol";
+import "./AttestationMessenger.sol";
 import "./interfaces/IEventManager.sol";
 
 contract TicketFactory is ITicketFactory, ERC1155, Ownable {
@@ -13,15 +14,19 @@ contract TicketFactory is ITicketFactory, ERC1155, Ownable {
 
     bool public immutable isMainChain;
     uint256 public ticketID;
+    address public receiver;
     IEventManager public eventManager;
+    Messenger public messenger;
     mapping(uint256 => Ticket) public ticketInfo;
     mapping(address => mapping(uint256 => bool)) public locks;
 
     /// @param isMain bool - Specify the current deploying chain is the main chain
     /// @param manager address - Address of the EventManager contract for attestation
-    constructor(bool isMain, address manager) ERC1155("") {
+    constructor(bool isMain, address manager, address payable atstMessenger, address messageReceiver) ERC1155("") {
         isMainChain = isMain;
         eventManager = IEventManager(manager);
+        messenger = Messenger(atstMessenger);
+        receiver = messageReceiver;
     }
 
     /// @inheritdoc ITicketFactory
@@ -66,7 +71,8 @@ contract TicketFactory is ITicketFactory, ERC1155, Ownable {
         attest(ticket);
     }
 
-    function attest(Ticket memory ticket) private {
+    /// @inheritdoc ITicketFactory
+    function attest(Ticket memory ticket) public onlyMessenger {
         if (isMainChain) {
             eventManager.addEventAttestation(
                 keccak256(abi.encodePacked(ticket.domain, ticket.name)),
@@ -78,9 +84,15 @@ contract TicketFactory is ITicketFactory, ERC1155, Ownable {
                 })
             );
         } 
-        // else {
-        // FIXME: Call other chains to create attestations
-        // }
+        else {
+            bytes memory data = abi.encode(ticket);
+
+            messenger.sendMessagePayLINK(
+                16015286601757825753,
+                receiver,
+                string(data)
+            );
+        }
     }
 
     /**
@@ -95,5 +107,13 @@ contract TicketFactory is ITicketFactory, ERC1155, Ownable {
         bytes memory
     ) internal pure override {
         revert("[] transfers are not allowed");
+    }
+
+    modifier onlyMessenger() {
+        require(
+            msg.sender == address(messenger) || msg.sender == address(this),
+            "[onlyMessenger] caller is not the messenger"
+        );
+        _;
     }
 }
