@@ -1,3 +1,4 @@
 export const Queries = {
-    lookupENS: ['LOOKUP_ENS'],
+    lookupENS: 'LOOKUP_ENS',
+    events: 'EVENTS',
 };

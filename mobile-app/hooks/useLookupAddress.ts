@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery } from 'react-query';
 
 import { Queries } from '../constants/Queries';
 import { formatAddress } from '../utils/formatAddress';
