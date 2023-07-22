@@ -1,22 +1,30 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { QueryClientProvider } from '@tanstack/react-query';
 import { useWalletConnectModal } from '@walletconnect/modal-react-native';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import * as React from 'react';
+import { QueryClientProvider } from 'react-query';
 import { RecoilRoot } from 'recoil';
 
 import { Paths } from './constants';
 import { useScreenOptions } from './hooks';
 import { Intro, MyTickeths } from './pages';
 import { Account } from './pages/Account';
+import { Event } from './pages/Event';
 import { Events } from './pages/Events';
+import type { EventDto } from './queries/dto';
 import { usePoppins } from './styles/theme';
 import { tickethQueryClient } from './utils/ReactQueryUtils';
 
 const StackNavigator = createStackNavigator();
 SplashScreen.preventAutoHideAsync();
+
+export type ParamList = {
+    [Paths.EVENT]: {
+        event: EventDto;
+    };
+};
 
 export default function App(): JSX.Element | null {
     const fontsLoaded = usePoppins();
@@ -67,6 +75,11 @@ function Main(): JSX.Element {
                         options={screenOptions}
                         name={Paths.ACCOUNT}
                         component={Account}
+                    />
+                    <StackNavigator.Screen
+                        options={screenOptions}
+                        name={Paths.EVENT}
+                        component={Event}
                     />
                 </StackNavigator.Navigator>
             ) : (
