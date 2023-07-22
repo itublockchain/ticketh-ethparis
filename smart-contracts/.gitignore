@@ -1,4 +1,5 @@
 node_modules/
 artifacts/
+typechain-types/
 .DS_Store
 *cache.json
