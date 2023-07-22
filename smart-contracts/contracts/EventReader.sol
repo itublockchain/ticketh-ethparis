@@ -5,12 +5,10 @@ import {Attestation} from "@ethereum-attestation-service/eas-contracts/contracts
 import {IEventReader} from "./interfaces/IEventReader.sol";
 import {EventDataType, EventData, IEventManager} from "./interfaces/IEventManager.sol";
 import {SignatureVerifier} from "./utils/SignatureVerifier.sol";
+import {console} from "hardhat/console.sol";
 
 interface CCIPGateway {
-    function resolveEvents(
-        bytes32 domain,
-        address user
-    ) external view returns (EventData[] memory);
+    function resolveEvents(bytes32 domain, address user) external view returns (bytes memory, uint64, bytes memory);
 }
 
 /// @dev Reads attestation events using EIP3668
@@ -25,13 +23,7 @@ contract EventReader {
     // Errors
     ////////////////////////////////////////////////////////////////////////////
 
-    error OffchainLookup(
-        address sender,
-        string[] urls,
-        bytes callData,
-        bytes4 callbackFunction,
-        bytes extraData
-    );
+    error OffchainLookup(address sender, string[] urls, bytes callData, bytes4 callbackFunction, bytes extraData);
 
     ////////////////////////////////////////////////////////////////////////////
     // Storage
@@ -77,52 +69,28 @@ contract EventReader {
     /// @param domain Hash of event, e.g. keccak256("ETHGlobal")
     /// @param user Address of the user
     /// @return Reputation of the user
-    function getReputation(
-        bytes32 domain,
-        address user
-    ) external view returns (uint256) {
+    function getReputation(bytes32 domain, address user) external view returns (uint256) {
         if (useOffchainResolver) {
-            bytes memory callData = abi.encodeWithSelector(
-                CCIPGateway.resolveEvents.selector,
-                domain,
-                user
-            );
+            bytes memory callData = abi.encodeWithSelector(CCIPGateway.resolveEvents.selector, domain, user);
 
             string[] memory urls = new string[](1);
             urls[0] = offchainResolverUrl;
-            revert OffchainLookup(
-                address(this),
-                urls,
-                callData,
-                EventReader.getReputationWithProof.selector,
-                callData
-            );
+            revert OffchainLookup(address(this), urls, callData, EventReader.getReputationWithProof.selector, callData);
         } else {
-            EventData[] memory eventDatas = eventManager.getAllEvents(
-                domain,
-                user
-            );
+            EventData[] memory eventDatas = eventManager.getAllEvents(domain, user);
             return computeReputation(eventDatas);
         }
     }
 
-    function getReputationWithProof(
-        bytes calldata response,
-        bytes calldata proof
-    ) external view returns (uint256) {
-        (address signer, bytes memory result) = SignatureVerifier.verify(
-            proof,
-            response
-        );
-        require(signers[signer], "SignatureVerifier: Invalid sigature");
+    function getReputationWithProof(bytes calldata response, bytes calldata extraData) external view returns (uint256) {
+        (address signer, bytes memory result) = SignatureVerifier.verify(extraData, response);
+        require(signers[signer], "SignatureVerifier: Invalid signature");
 
-        EventData[] memory eventDatas = abi.decode(result, (EventData[]));
+        (EventData[] memory eventDatas,,) = abi.decode(result, (EventData[], uint64, bytes));
         return computeReputation(eventDatas);
     }
 
-    function computeReputation(
-        EventData[] memory eventDatas
-    ) private view returns (uint256) {
+    function computeReputation(EventData[] memory eventDatas) private view returns (uint256) {
         uint256 totalReputation;
         for (uint256 i = 0; i < eventDatas.length; i++) {
             EventData memory eventData = eventDatas[i];

@@ -6,7 +6,7 @@ const fromHumanAbi = (fragments: ReadonlyArray<string>) =>
     new utils.Interface(fragments).format(utils.FormatTypes.json);
 
 const ccipGatewayAbi = fromHumanAbi([
-    "function resolveEvents(bytes32 domain, address user) view returns (tuple(uint8 eventType, string name, bytes extraData)[])",
+    "function resolveEvents(bytes32 domain, address user) view returns (bytes memory, uint64, bytes memory)",
 ]);
 
 const eventManagerAbi = fromHumanAbi([
@@ -20,44 +20,35 @@ const eventManagerAbi = fromHumanAbi([
 ]);
 
 const providerDetails: Record<string, [number, string]> = {
-    hardhat: [31337, "http://localhost:8545"],
     avaxFuji: [44787, "https://avalanche-fuji-c-chain.publicnode.com"],
     celoAlfajores: [43113, "https://alfajores-forno.celo-testnet.org"],
     sepholia: [11155111, "https://sepolia.gateway.tenderly.co"],
 };
+
+const eventManagerAddress = fs
+    .readFileSync("./EVENT_MANAGER_ADDRESS", "utf-8")
+    .trim();
 
 /**
  * @param privateKey Private key
  * @param basePath Path to get requests
  * @returns Server instance
  */
-export function makeApp(signer: utils.SigningKey, basePath: string) {
+export function makeMockApp(signer: utils.SigningKey, basePath: string) {
     const server = new CCIP.Server();
     server.add(ccipGatewayAbi, [
         {
             type: "resolveEvents",
-            func: async (args: utils.Result, request) => {
-                const eventManagerAddress = fs
-                    .readFileSync("./EVENT_MANAGER_ADDRESS", "utf-8")
-                    .trim();
-
-                const [domain, user] = args;
-                const [providerChainId, providerUrl] = providerDetails.hardhat;
-                const provider = new providers.JsonRpcProvider(
-                    providerUrl,
-                    providerChainId
-                );
-                console.log({ eventManagerAddress });
-                const eventManager = new Contract(
-                    eventManagerAddress,
-                    eventManagerAbi,
-                    provider
-                );
-                const events = await eventManager.getAllEvents(domain, user);
-                const result = utils.defaultAbiCoder.encode(
-                    ["tuple(uint8 eventType, string name, bytes extraData)[]"],
-                    [events]
-                );
+            func: async (args, request) => {
+                const result =
+                    "0x0000000000000000000000000000000000000000000000000000000000000020000000000000" +
+                    "000000000000000000000000000000000000000000000000000100000000000000000000000000" +
+                    "000000000000000000000000000000000000200000000000000000000000000000000000000000" +
+                    "000000000000000000000000000000000000000000000000000000000000000000000000000000" +
+                    "000000006000000000000000000000000000000000000000000000000000000000000000a00000" +
+                    "00000000000000000000000000000000000000000000000000000000000d4578616d706c652045" +
+                    "76656e740000000000000000000000000000000000000000000000000000000000000000000000" +
+                    "00000000000000000000000000000000";
 
                 // Hash and sign the response
                 const validUntil = (2n ** 64n - 1n).toString(); // U64 max
@@ -72,7 +63,7 @@ export function makeApp(signer: utils.SigningKey, basePath: string) {
                     ]
                 );
                 const signature = signer.signDigest(messageHash);
-                const sigData = utils.joinSignature(signature);
+                const sigData = utils.joinSignature(signature)
                 return [result, validUntil, sigData];
             },
         },
