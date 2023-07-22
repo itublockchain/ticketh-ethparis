@@ -37,17 +37,13 @@ export function makeApp(signer: utils.SigningKey, basePath: string) {
         {
             type: "resolveEvents",
             func: async (args: utils.Result, request) => {
-                const eventManagerAddress = fs
-                    .readFileSync("./EVENT_MANAGER_ADDRESS", "utf-8")
-                    .trim();
-
                 const [domain, user] = args;
                 const [providerChainId, providerUrl] = providerDetails.hardhat;
                 const provider = new providers.JsonRpcProvider(
                     providerUrl,
                     providerChainId
                 );
-                console.log({ eventManagerAddress });
+                const eventManagerAddress = "0xed6Ba0852AEA249a767E51FbC628c98ABe5C5170";
                 const eventManager = new Contract(
                     eventManagerAddress,
                     eventManagerAbi,
