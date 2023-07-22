@@ -1,6 +1,5 @@
 import * as CCIP from "@chainlink/ccip-read-server";
-import * as fs from "fs";
-import { Contract, Wallet, providers, utils } from "ethers";
+import { Contract, providers, utils } from "ethers";
 
 const fromHumanAbi = (fragments: ReadonlyArray<string>) =>
     new utils.Interface(fragments).format(utils.FormatTypes.json);
@@ -38,7 +37,7 @@ export function makeApp(signer: utils.SigningKey, basePath: string) {
             type: "resolveEvents",
             func: async (args: utils.Result, request) => {
                 const [domain, user] = args;
-                const [providerChainId, providerUrl] = providerDetails.hardhat;
+                const [providerChainId, providerUrl] = providerDetails.sepholia;
                 const provider = new providers.JsonRpcProvider(
                     providerUrl,
                     providerChainId

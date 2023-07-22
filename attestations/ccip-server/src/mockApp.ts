@@ -25,10 +25,6 @@ const providerDetails: Record<string, [number, string]> = {
     sepholia: [11155111, "https://sepolia.gateway.tenderly.co"],
 };
 
-const eventManagerAddress = fs
-    .readFileSync("./EVENT_MANAGER_ADDRESS", "utf-8")
-    .trim();
-
 /**
  * @param privateKey Private key
  * @param basePath Path to get requests
