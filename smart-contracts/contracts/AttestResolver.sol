@@ -14,11 +14,17 @@ contract AttesterResolver is SchemaResolver {
         _targetAttester = targetAttester;
     }
 
-    function onAttest(Attestation calldata attestation, uint256 /*value*/) internal view override returns (bool) {
+    function onAttest(
+        Attestation calldata attestation,
+        uint256 /*value*/
+    ) internal view override returns (bool) {
         return attestation.attester == _targetAttester;
     }
 
-    function onRevoke(Attestation calldata /*attestation*/, uint256 /*value*/) internal pure override returns (bool) {
+    function onRevoke(
+        Attestation calldata /*attestation*/,
+        uint256 /*value*/
+    ) internal pure override returns (bool) {
         return true;
     }
 }

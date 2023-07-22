@@ -10,59 +10,58 @@ describe("EventReader", () => {
         const HARDHAT_CHAIN_ID = 31337;
         const FAKE_CHAIN_ID = 31338;
 
-        const CORRECT_DOMAIN = ethers.utils.id("Example Domain");
-        const FAKE_DOMAIN = ethers.utils.id(
+        const CORRECT_DOMAIN = ethers.id("Example Domain");
+        const FAKE_DOMAIN = ethers.id(
             "Example Domain 2: Electric Bungaloo"
         );
-
         const [owner, user] = await ethers.getSigners();
 
         const SchemaRegistry = await ethers.getContractFactory(
             "SchemaRegistry"
         );
         const schemaRegistry = await SchemaRegistry.deploy();
-        await schemaRegistry.deployed();
+        await schemaRegistry.waitForDeployment();
 
         const EASF = await ethers.getContractFactory("EAS");
-        const eas = await EASF.deploy(schemaRegistry.address);
-        await eas.deployed();
+        const eas = await EASF.deploy(await schemaRegistry.getAddress());
+        await eas.waitForDeployment();
 
         const schema = "uint256 eventDataType, string name, bytes extraData";
         const EventManager = await ethers.getContractFactory("EventManager");
         const eventManager = await EventManager.deploy(
-            eas.address,
+            await eas.getAddress(),
             owner.address
         );
-        await eventManager.deployed();
+        await eventManager.waitForDeployment();
 
         const AttesterResolver = await ethers.getContractFactory(
             "AttesterResolver"
         );
         const attester = await AttesterResolver.deploy(
-            eas.address,
-            eventManager.address
+            await eas.getAddress(),
+            await eventManager.getAddress()
         );
-        await attester.deployed();
+        await attester.waitForDeployment();
 
         const schemaData: [string, string, boolean] = [
             schema,
-            attester.address,
+            await attester.getAddress(),
             true,
         ];
-        const schemaUid = ethers.utils.keccak256(
-            ethers.utils.solidityPack(["string", "address", "bool"], schemaData)
+        const schemaUid = ethers.keccak256(
+            ethers.solidityPacked(["string", "address", "bool"], schemaData)
         );
 
         await eventManager.initialize(schemaUid);
 
         const EventReader = await ethers.getContractFactory("EventReader");
         const eventReader = await EventReader.deploy(
-            eventManager.address,
+            await eventManager.getAddress(),
             FAKE_CHAIN_ID,
             GATEWAY_URL,
             SERVER_ADDRESS
         );
-        await eventReader.deployed();
+        await eventReader.waitForDeployment();
 
         return {
             owner,
@@ -150,7 +149,7 @@ describe("EventReader", () => {
         const reputationScore = await eventReader.getReputation(
             CORRECT_DOMAIN,
             user.address,
-            { ccipReadEnabled: true }
+            { enableCcipRead: true }
         );
         expect(reputationScore).to.be.equal(1);
     });
