@@ -123,10 +123,7 @@ contract EventReader is Ownable {
         );
         require(signers[signer], "SignatureVerifier: Invalid signature");
 
-        (EventData[] memory eventDatas, , ) = abi.decode(
-            result,
-            (EventData[], uint64, bytes)
-        );
+        EventData[] memory eventDatas = abi.decode(result, (EventData[]));
         return computeReputation(eventDatas);
     }
 
