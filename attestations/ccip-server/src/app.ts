@@ -1,12 +1,12 @@
 import * as CCIP from "@chainlink/ccip-read-server";
 import * as fs from "fs";
-import { Contract, providers, utils } from "ethers";
+import { Contract, Wallet, providers, utils } from "ethers";
 
 const fromHumanAbi = (fragments: ReadonlyArray<string>) =>
     new utils.Interface(fragments).format(utils.FormatTypes.json);
 
 const ccipGatewayAbi = fromHumanAbi([
-    "function getAllEvents(bytes32 domain, address user) view returns (tuple(uint8 eventType, string name, bytes extraData)[])",
+    "function resolveEvents(bytes32 domain, address user) view returns (tuple(uint8 eventType, string name, bytes extraData)[])",
 ]);
 
 const eventManagerAbi = fromHumanAbi([
@@ -30,12 +30,12 @@ const providerDetails: Record<string, [number, string]> = {
  * @param basePath Path to get requests
  * @returns Server instance
  */
-export function makeApp(_privateKey: string, basePath: string) {
+export function makeApp(signer: utils.SigningKey, basePath: string) {
     const server = new CCIP.Server();
     server.add(ccipGatewayAbi, [
         {
-            type: "getAllEvents",
-            func: async (args: utils.Result) => {
+            type: "resolveEvents",
+            func: async (args: utils.Result, request) => {
                 const [domain, user] = args;
                 const [providerChainId, providerUrl] = providerDetails.sepholia;
                 const provider = new providers.StaticJsonRpcProvider(
@@ -49,7 +49,28 @@ export function makeApp(_privateKey: string, basePath: string) {
                     provider
                 );
                 const events = await eventManager.getAllEvents(domain, user);
-                return [events];
+                const result = utils.defaultAbiCoder.encode(
+                    [
+                        "(tuple(uint8 eventType, string name, bytes extraData)[])",
+                    ],
+                    [events]
+                );
+
+                // Hash and sign the response
+                const validUntil = (2n ** 64n - 1n).toString(); // U64 max
+                const messageHash = utils.solidityKeccak256(
+                    ["bytes", "address", "uint64", "bytes32", "bytes32"],
+                    [
+                        "0x1900",
+                        request?.to,
+                        validUntil,
+                        utils.keccak256(request?.data || "0x"),
+                        utils.keccak256(result),
+                    ]
+                );
+                const signature = signer.signDigest(messageHash);
+                const sigData = utils.hexConcat([signature.r, signature._vs]);
+                return [result, validUntil, sigData];
             },
         },
     ]);

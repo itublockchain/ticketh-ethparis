@@ -1,5 +1,6 @@
 import dotenv from "dotenv";
 import { makeApp } from "./app";
+import { utils } from "ethers";
 dotenv.config();
 
 const getEnv = (key: string): string => {
@@ -8,9 +9,9 @@ const getEnv = (key: string): string => {
     return value;
 };
 
-const privateKey = getEnv("SERVER_PRIVATE_KEY");
+const signer = new utils.SigningKey(getEnv("SERVER_PRIVATE_KEY"));
 const basePath = "/";
-const app = makeApp(privateKey, basePath);
+const app = makeApp(signer, basePath);
 const port = process.env.PORT || 3668;
 app.listen(port);
 

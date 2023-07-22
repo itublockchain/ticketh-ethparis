@@ -4,9 +4,10 @@ pragma solidity ^0.8.19;
 import {Attestation} from "@ethereum-attestation-service/eas-contracts/contracts/IEAS.sol";
 import {IEventReader} from "./interfaces/IEventReader.sol";
 import {EventDataType, EventData, IEventManager} from "./interfaces/IEventManager.sol";
+import {SignatureVerifier} from "./utils/SignatureVerifier.sol";
 
 interface CCIPGateway {
-    function getAllEvents(
+    function resolveEvents(
         bytes32 domain,
         address user
     ) external view returns (EventData[] memory);
@@ -39,6 +40,9 @@ contract EventReader {
     /// @dev Maps event type to score
     mapping(EventDataType => uint256) scores;
 
+    // @dev Set of signers
+    mapping(address => bool) signers;
+
     /// @dev Address that manages events
     IEventManager eventManager;
 
@@ -52,7 +56,8 @@ contract EventReader {
     constructor(
         IEventManager _eventManager,
         uint256 _mainChainId,
-        string memory _offchainResolverUrl
+        string memory _offchainResolverUrl,
+        address _offchainSigner
     ) {
         eventManager = _eventManager;
         useOffchainResolver = _mainChainId != block.chainid;
@@ -60,6 +65,8 @@ contract EventReader {
 
         scores[EventDataType.Attendance] = 1;
         scores[EventDataType.HackathonPlacement] = 5;
+
+        signers[_offchainSigner] = true;
     }
 
     ////////////////////////////////////////////////////////////////////////////
@@ -75,18 +82,20 @@ contract EventReader {
         address user
     ) external view returns (uint256) {
         if (useOffchainResolver) {
+            bytes memory callData = abi.encodeWithSelector(
+                CCIPGateway.resolveEvents.selector,
+                domain,
+                user
+            );
+
             string[] memory urls = new string[](1);
             urls[0] = offchainResolverUrl;
             revert OffchainLookup(
                 address(this),
                 urls,
-                abi.encodeWithSelector(
-                    CCIPGateway.getAllEvents.selector,
-                    domain,
-                    user
-                ),
-                EventReader.getReputationOffchain.selector,
-                abi.encodePacked(domain, user)
+                callData,
+                EventReader.getReputationWithProof.selector,
+                callData
             );
         } else {
             EventData[] memory eventDatas = eventManager.getAllEvents(
@@ -97,9 +106,17 @@ contract EventReader {
         }
     }
 
-    function getReputationOffchain(
-        EventData[] calldata eventDatas
+    function getReputationWithProof(
+        bytes calldata response,
+        bytes calldata proof
     ) external view returns (uint256) {
+        (address signer, bytes memory result) = SignatureVerifier.verify(
+            proof,
+            response
+        );
+        require(signers[signer], "SignatureVerifier: Invalid sigature");
+
+        EventData[] memory eventDatas = abi.decode(result, (EventData[]));
         return computeReputation(eventDatas);
     }
 
