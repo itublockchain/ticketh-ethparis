@@ -24,11 +24,12 @@ contract EventManager is IEventManager {
     ////////////////////////////////////////////////////////////////////////////
 
     // Event ID -> User -> Attestation
+    mapping(bytes32 => mapping(address => uint256)) public attestationsLen;
     mapping(bytes32 => mapping(address => bytes32)) public attestations;
 
     bytes32 eventSchema;
     address attestationAdmin;
-    IEAS attestationService;
+    IEAS public attestationService;
 
     ////////////////////////////////////////////////////////////////////////////
     // Constructor
@@ -58,37 +59,37 @@ contract EventManager is IEventManager {
     ////////////////////////////////////////////////////////////////////////////
 
     /// @inheritdoc IEventManager
-    function getEventAttestation(
-        bytes32 eventId,
+    function getAllEvents(
+        bytes32 domain,
         address user
-    ) external view returns (EventData memory) {
-        bytes32 uid = attestations[eventId][user];
-        require(uid != EMPTY_BYTES32, "EM: EMPTY_UID");
+    ) external view returns (EventData[] memory) {
+        uint256 attestationLen = attestationsLen[domain][user];
+        bytes32 latestUid = attestations[domain][user];
+        EventData[] memory eventDatas = new EventData[](attestationLen);
 
-        Attestation memory attestation = attestationService.getAttestation(uid);
-        require(attestation.uid != EMPTY_BYTES32, "EM: EMPTY_ATTESTATION");
+        for (uint256 i = attestationLen - 1; i >= 0; i++) {
+            Attestation memory attestation = attestationService.getAttestation(
+                latestUid
+            );
+            EventData memory eventData = abi.decode(
+                attestation.data,
+                (EventData)
+            );
+            eventDatas[i] = eventData;
+            latestUid = attestation.refUID;
+        }
 
-        EventData memory data = abi.decode(attestation.data, (EventData));
-        return data;
+        return eventDatas;
     }
 
     /// @inheritdoc IEventManager
-    function updateEventAttestation(
-        bytes32 eventId,
+    function addEventAttestation(
+        bytes32 domain,
         address recipient,
         EventData calldata eventData
     ) external onlyAdmin returns (bytes32) {
-        bytes32 uid = attestations[eventId][recipient];
-        if (uid != EMPTY_BYTES32) {
-            RevocationRequest memory revocationRequest = RevocationRequest(
-                eventSchema,
-                RevocationRequestData({uid: uid, value: ATTEST_VALUE})
-            );
-
-            // There exists an attestation already, cancel it
-            attestationService.revoke(revocationRequest);
-        }
-
+        // Create the new attestation, referencing the old one
+        bytes32 uid = attestations[domain][recipient];
         bytes memory attestationData = abi.encode(eventData);
         AttestationRequest memory attestationRequest = AttestationRequest(
             eventSchema,
@@ -96,12 +97,16 @@ contract EventManager is IEventManager {
                 recipient: recipient,
                 expirationTime: U64_MAX,
                 revocable: true,
-                refUID: EMPTY_BYTES32,
+                refUID: uid,
                 data: attestationData,
                 value: ATTEST_VALUE
             })
         );
 
-        return attestationService.attest(attestationRequest);
+        // Set the newest UID
+        bytes32 newUid = attestationService.attest(attestationRequest);
+        attestations[domain][recipient] = newUid;
+        attestationsLen[domain][recipient]++;
+        return newUid;
     }
 }
