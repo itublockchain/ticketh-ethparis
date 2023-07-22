@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "./interfaces/ITicketFactory.sol";
 import "./AttestationMessenger.sol";
 import "./interfaces/IEventManager.sol";
+import "./interfaces/IEventReader.sol";
 
 contract TicketFactory is ITicketFactory, ERC1155, Ownable {
     // Token identifiers
@@ -17,8 +18,10 @@ contract TicketFactory is ITicketFactory, ERC1155, Ownable {
     uint256 public ticketID;
     address public receiver;
     IEventManager public eventManager;
+    IEventReader public reader;
     Messenger public messenger;
     mapping(uint256 => Ticket) public ticketInfo;
+    mapping(address => mapping(uint256 => uint256)) public paidPrices;
     mapping(address => mapping(uint256 => bool)) public locks;
 
     event TicketInitiated(uint256 ticketID, Ticket ticket);
@@ -26,11 +29,18 @@ contract TicketFactory is ITicketFactory, ERC1155, Ownable {
 
     /// @param isMain bool - Specify the current deploying chain is the main chain
     /// @param manager address - Address of the EventManager contract for attestation
-    constructor(bool isMain, address manager, address payable atstMessenger, address messageReceiver) ERC1155("") {
+    constructor(
+        bool isMain,
+        address manager,
+        address payable atstMessenger,
+        address messageReceiver,
+        address readerAddress
+    ) ERC1155("") {
         isMainChain = isMain;
         eventManager = IEventManager(manager);
         messenger = Messenger(atstMessenger);
         receiver = messageReceiver;
+        reader = IEventReader(readerAddress);
     }
 
     /// @inheritdoc ITicketFactory
@@ -53,7 +63,25 @@ contract TicketFactory is ITicketFactory, ERC1155, Ownable {
             ticket.deadline >= block.timestamp,
             "[mint] deadline must be in a future date"
         );
-        require(msg.value >= ticket.price, "[mint] insufficient funds");
+
+        uint256 price;
+        uint256 reputation = reader.getReputation(
+            keccak256(abi.encodePacked(ticket.domain, ticket.name)),
+            msg.sender
+        );
+
+        if (reputation < 1) {
+            price = ticket.price;
+        } else if (reputation < 3) {
+            price = (ticket.price * 90) / 100;
+        } else if (reputation < 7) {
+            price = (ticket.price * 70) / 100;
+        } else {
+            price = ticket.price / 2;
+        }
+
+        require(msg.value >= price, "[mint] insufficient funds");
+        paidPrices[msg.sender][tID] = msg.value;
 
         _mint(msg.sender, tID, 1, "");
     }
@@ -72,7 +100,7 @@ contract TicketFactory is ITicketFactory, ERC1155, Ownable {
         );
 
         locks[msg.sender][tID] = true;
-        payable(msg.sender).transfer(ticket.price);
+        payable(msg.sender).transfer(paidPrices[msg.sender][tID]);
 
         attest(ticket, msg.sender);
     }
@@ -89,8 +117,7 @@ contract TicketFactory is ITicketFactory, ERC1155, Ownable {
                     extraData: ""
                 })
             );
-        } 
-        else {
+        } else {
             bytes memory data = abi.encode(ticket, user);
 
             messenger.sendMessagePayLINK(
