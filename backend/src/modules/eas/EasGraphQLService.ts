@@ -14,7 +14,6 @@ import { Environment } from 'src/utils/Environment';
 import { getRpcProvider } from 'src/utils/getRPCProvider';
 import { AttestationCreateDto, AttestationDto } from 'src/modules/eas/Eas.dto';
 import { getSigner } from 'src/utils/getSigner';
-import { v4 as uuid } from 'uuid';
 import { getTimestamp } from 'src/utils/getTimestamp';
 
 export class EasGraphQLService {
@@ -58,6 +57,7 @@ export class EasGraphQLService {
 
   public static async genSignedOffChainAttestation(
     eventId: string,
+    ticketId: string,
     attestation: AttestationCreateDto,
   ): Promise<SignedOffchainAttestation> {
     const eas = this.getEasInstance();
@@ -74,7 +74,7 @@ export class EasGraphQLService {
       refUID:
         attestation.refUID ??
         '0x0000000000000000000000000000000000000000000000000000000000000000',
-      data: this.getEncodedData(eventId, uuid()),
+      data: this.getEncodedData(eventId, ticketId),
       version: 0,
     };
 

@@ -2,11 +2,16 @@ import { HttpException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { HttpStatusCode } from 'axios';
 import { Attestation } from 'src/entities/Attestation.entity';
-import { AttestationCreateDto, AttestationDto } from 'src/modules/eas/Eas.dto';
+import {
+  AttestationCreateDto,
+  AttestationDto,
+  AttestationResponseDto,
+} from 'src/modules/eas/Eas.dto';
 import { GraphqlResponse } from 'src/modules/eas/EasGraphQLSchemas';
 import { EasGraphQLService } from 'src/modules/eas/EasGraphQLService';
 import { EventService } from 'src/modules/event/Event.service';
 import { Repository } from 'typeorm';
+import { v4 as uuid } from 'uuid';
 
 @Injectable()
 export class EasService {
@@ -20,7 +25,7 @@ export class EasService {
   public async genNullableAttestationById(
     attestationId: string,
     isGraphQL = false,
-  ): Promise<GraphqlResponse<AttestationDto>> {
+  ): Promise<GraphqlResponse<AttestationResponseDto | AttestationDto | null>> {
     if (isGraphQL) {
       return await EasGraphQLService.genAttestation(attestationId);
     } else {
@@ -34,7 +39,11 @@ export class EasService {
         return { data: null };
       }
 
-      const parsed: AttestationDto = JSON.parse(attestation.messageJSON);
+      const parsed: AttestationResponseDto = {
+        eventId: attestation.eventId,
+        ticketId: attestation.ticketId,
+        ...JSON.parse(attestation.messageJSON),
+      };
 
       return {
         data: parsed,
@@ -61,9 +70,12 @@ export class EasService {
         );
       }
 
+      const ticketId = uuid();
+
       const signedOffChainAttestation =
         await EasGraphQLService.genSignedOffChainAttestation(
           eventId,
+          ticketId,
           attestationDto,
         );
 
@@ -73,6 +85,9 @@ export class EasService {
         uid: signedOffChainAttestation.uid,
         signatureJSON: JSON.stringify(signedOffChainAttestation.signature),
         primaryType: String(signedOffChainAttestation.primaryType),
+        recipient: signedOffChainAttestation.message.recipient,
+        eventId: Number(eventId),
+        ticketId,
       };
 
       const newAttestation =

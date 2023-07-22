@@ -16,7 +16,11 @@ export class Event {
   description: string;
 
   @ApiProperty()
-  @Column({ default: null, nullable: true })
+  @Column({ default: '' })
+  location: string;
+
+  @ApiProperty()
+  @Column({ default: null, nullable: true, length: 10_000_000 })
   image_url: string | null;
 
   @ApiProperty()

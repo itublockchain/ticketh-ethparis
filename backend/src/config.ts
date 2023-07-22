@@ -20,6 +20,7 @@ export const CONFIG: Config = {
   PORT: Environment.PORT,
   APP_CORS: Environment.APP_CORS,
   APP_NAME: 'Ticketh',
+  AUTH_MESSAGE: 'Authorize Ticketh',
 };
 
 type Config = {
@@ -27,4 +28,5 @@ type Config = {
   PORT: number;
   APP_CORS: string;
   APP_NAME: string;
+  AUTH_MESSAGE: string;
 };

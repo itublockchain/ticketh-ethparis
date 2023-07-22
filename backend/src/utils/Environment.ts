@@ -67,6 +67,11 @@ export class Environment {
   static ALCHEMY_URL: string = process.env.ALCHEMY_URL;
 
   /**
+   * @dev Alchemy API Key
+   */
+  static ALCHEMY_API_KEY: string = process.env.ALCHEMY_API_KEY;
+
+  /**
    * @dev EAS Contract Adress
    */
   static EAS_CONTRACT: string = process.env.EAS_CONTRACT;

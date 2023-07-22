@@ -20,7 +20,7 @@ export class EventContoller {
     return await this.eventService.genEvents();
   }
 
-  @DefaultApiOperation('Get all events')
+  @DefaultApiOperation('Get event by id')
   @ApiOkResponse({
     type: Event,
     isArray: true,

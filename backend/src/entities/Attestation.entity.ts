@@ -12,6 +12,18 @@ export class Attestation {
   uid: string;
 
   @ApiProperty()
+  @Column()
+  eventId: number;
+
+  @ApiProperty()
+  @Column()
+  ticketId: string;
+
+  @ApiProperty()
+  @Column()
+  recipient: string;
+
+  @ApiProperty()
   @Column({ length: 5000 })
   domainJSON: string;
 
