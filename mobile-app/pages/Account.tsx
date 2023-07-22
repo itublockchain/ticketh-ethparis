@@ -7,6 +7,7 @@ import { SafeAreaView, Share, Text, View } from 'react-native';
 import { StyleSheet } from 'react-native';
 
 import { Navbar } from '../components';
+import { ADMIN_ADDRESS } from '../constants';
 import { WalletConnectConstants } from '../constants/WalletConnectConstants';
 import { useLookupAddress } from '../hooks/useLookupAddress';
 import { copy, creditCard, userFilled } from '../icons';
@@ -73,15 +74,17 @@ export const Account = (): JSX.Element => {
                             >
                                 Share Address
                             </Button>
-                            <Button
-                                color="light"
-                                buttonOverride={{
-                                    style: styles.validate,
-                                }}
-                                leftIcon={creditCard}
-                            >
-                                Validate Ticketh
-                            </Button>
+                            {address === ADMIN_ADDRESS && (
+                                <Button
+                                    color="light"
+                                    buttonOverride={{
+                                        style: styles.validate,
+                                    }}
+                                    leftIcon={creditCard}
+                                >
+                                    Validate Ticketh
+                                </Button>
+                            )}
                         </View>
                         <View style={styles.logoutWrapper}>
                             <Button onPress={logout}>Log out</Button>
