@@ -9,8 +9,8 @@ import type { EventDto } from '../queries/dto';
 import { colors } from '../styles/colors';
 import { Poppins } from '../styles/theme';
 import { Button } from '../ui/Button';
-import { formatBase64 } from '../utils/formatBase64';
 import { formatDate } from '../utils/formatDate';
+import { formatImageUrl } from '../utils/formatImageUrl';
 import { useSigner } from '../web3/useSigner';
 
 export type EventCardType = 'sale' | 'detailed' | 'buyed';
@@ -35,8 +35,14 @@ export const EventCard = ({
     if (signer == null) return null;
 
     const handleGetTicket = async (): Promise<void> => {
-        const args = [Paths.EVENT, { event }] as never;
-        navigation.navigate(...args);
+        if (type === 'sale') {
+            const args = [Paths.EVENT, { event }] as never;
+            navigation.navigate(...args);
+        } else if (type === 'buyed') {
+            // Add to apple wallet
+        } else {
+            // Buy
+        }
     };
 
     const buyContent = useMemo(() => {
@@ -55,7 +61,7 @@ export const EventCard = ({
                 style={styles.image}
                 source={
                     event.image_url
-                        ? { uri: formatBase64(event.image_url) }
+                        ? formatImageUrl(event.image_url)
                         : MockEventImage
                 }
             />
