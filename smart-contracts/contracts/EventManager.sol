@@ -82,7 +82,7 @@ contract EventManager is IEventManager, Ownable {
         bytes32 latestUid = attestations[domain][user];
         EventData[] memory eventDatas = new EventData[](attestationLen);
 
-        for (int256 i = int256(attestationLen - 1); i >= 0; i--) {
+        while (attestationLen > 0) {
             Attestation memory attestation = attestationService.getAttestation(
                 latestUid
             );
@@ -90,7 +90,7 @@ contract EventManager is IEventManager, Ownable {
                 attestation.data,
                 (EventData)
             );
-            eventDatas[uint256(i)] = eventData;
+            eventDatas[--attestationLen] = eventData;
             latestUid = attestation.refUID;
         }
 

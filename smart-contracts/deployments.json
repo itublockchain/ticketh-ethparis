@@ -1,4 +1,6 @@
 {
-    "eventManager": "0xed6Ba0852AEA249a767E51FbC628c98ABe5C5170",
-    "attesterResolver": "0x8e163ccEe75Ce2E8D51Ad9a2d8cf5825A191027d"
+    "eventManager": "0xfDCC186855EAcBbcc2a5Ca36570C7782cC5855F9",
+    "attesterResolver": "0x3d5858502455d5D9Fb4bB78843Dfa523329cEC93",
+    "eventReader": "0x00668C9179B9b95855530e34C3ef945822c775AF",
+    "eventReaderCcipEnabled": "0x843d99642e62F107df8B1CA4c7C4345a84d7Ca3b"
 }

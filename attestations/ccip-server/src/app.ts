@@ -42,7 +42,7 @@ export function makeApp(signer: utils.SigningKey, basePath: string) {
                     providerUrl,
                     providerChainId
                 );
-                const eventManagerAddress = "0xed6Ba0852AEA249a767E51FbC628c98ABe5C5170";
+                const eventManagerAddress = "0xfDCC186855EAcBbcc2a5Ca36570C7782cC5855F9";
                 const eventManager = new Contract(
                     eventManagerAddress,
                     eventManagerAbi,

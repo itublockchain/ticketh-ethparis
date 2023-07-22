@@ -18,7 +18,7 @@ const config: HardhatUserConfig = {
   },
   networks: {
     sepholia: {
-      url: "https://sepolia.gateway.tenderly.co",
+      url: getEnv("SEPHOLIA_RPC_URL"),
       chainId: 11155111,
       accounts: [getEnv("DEPLOYER_PRIVATE_KEY")],
     }
