@@ -13,6 +13,17 @@ struct Ticket {
 
 interface ITicketFactory is IERC1155 {
     /**
+     * @param tID uint256 - Ticket token id
+     * @param user address - User address
+     * @dev To get non-reduced price, give address(0)
+     * @return Ticket - Ticket data
+     */
+    function getTicketData(
+        uint256 tID,
+        address user
+    ) external view returns (Ticket memory, uint256);
+
+    /**
      * @param ticket Ticket - Ticket data
      * @dev Can only be called by the owner
      */
@@ -26,13 +37,24 @@ interface ITicketFactory is IERC1155 {
 
     /**
      * @param tID uint256 - Ticket token id
+     * @param user address - User address
+     * @dev Only the event owner can call and send refund
      * @dev If the token is refundable, the user can get a refund by this function, also creates attestations
      */
-    function getRefund(uint256 tID) external;
+    function getRefund(uint256 tID, address user) external;
 
     /**
      * @param ticket Ticket - Ticket data
      * @dev Creates an attestation for the ticket, works after cross chain message in external call
      */
     function attest(Ticket memory ticket, address user) external;
+
+    /**
+     * @param ticket Ticket - Ticket data
+     * @param user address - User address
+     */
+    function getReputationPrice(
+        Ticket memory ticket,
+        address user
+    ) external view returns (uint256);
 }

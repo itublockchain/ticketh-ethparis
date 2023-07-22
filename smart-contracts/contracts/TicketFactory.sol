@@ -40,6 +40,19 @@ contract TicketFactory is ITicketFactory, ERC1155, Ownable {
     }
 
     /// @inheritdoc ITicketFactory
+    function getTicketData(
+        uint256 tID,
+        address user
+    ) external view returns (Ticket memory, uint256) {
+        if (user == address(0)) {
+            return (ticketInfo[tID], ticketInfo[tID].price);
+        }
+
+        uint256 newPrice = getReputationPrice(ticketInfo[tID], user);
+        return (ticketInfo[tID], newPrice);
+    }
+
+    /// @inheritdoc ITicketFactory
     function initTicket(Ticket calldata ticket) external onlyOwner {
         require(
             ticket.deadline > block.timestamp,
@@ -60,21 +73,7 @@ contract TicketFactory is ITicketFactory, ERC1155, Ownable {
             "[mint] deadline must be in a future date"
         );
 
-        uint256 price;
-        uint256 reputation = reader.getReputation(
-            ticket.domain,
-            msg.sender
-        );
-
-        if (reputation < 1) {
-            price = ticket.price;
-        } else if (reputation < 3) {
-            price = (ticket.price * 90) / 100;
-        } else if (reputation < 7) {
-            price = (ticket.price * 70) / 100;
-        } else {
-            price = ticket.price / 2;
-        }
+        uint256 price = getReputationPrice(ticket, msg.sender);
 
         require(msg.value >= price, "[mint] insufficient funds");
         paidPrices[msg.sender][tID] = msg.value;
@@ -83,22 +82,20 @@ contract TicketFactory is ITicketFactory, ERC1155, Ownable {
     }
 
     /// @inheritdoc ITicketFactory
-    function getRefund(uint256 tID) external {
+    function getRefund(uint256 tID, address user) external onlyOwner {
         Ticket memory ticket = ticketInfo[tID];
         require(ticket.isRefundable, "[getRefund] ticket is not refundable");
         require(
             block.timestamp > ticket.deadline,
             "[getRefund] deadline is not over"
         );
-        require(
-            balanceOf(msg.sender, tID) > 0,
-            "[getRefund] insufficient tickets"
-        );
+        require(balanceOf(user, tID) > 0, "[getRefund] insufficient tickets");
+        require(!locks[user][tID], "[getRefund] already refunded");
 
-        locks[msg.sender][tID] = true;
-        payable(msg.sender).transfer(paidPrices[msg.sender][tID]);
+        locks[user][tID] = true;
+        payable(user).transfer(paidPrices[user][tID]);
 
-        attest(ticket, msg.sender);
+        attest(ticket, user);
     }
 
     function setReceiver(address receiverAddress) external onlyOwner {
@@ -142,6 +139,27 @@ contract TicketFactory is ITicketFactory, ERC1155, Ownable {
         }
 
         emit Attestation(user);
+    }
+
+    /// @inheritdoc ITicketFactory
+    function getReputationPrice(
+        Ticket memory ticket,
+        address user
+    ) public view returns (uint256) {
+        uint256 price;
+        uint256 reputation = reader.getReputation(ticket.domain, user);
+
+        if (reputation < 1) {
+            price = ticket.price;
+        } else if (reputation < 3) {
+            price = (ticket.price * 90) / 100;
+        } else if (reputation < 7) {
+            price = (ticket.price * 70) / 100;
+        } else {
+            price = ticket.price / 2;
+        }
+
+        return price;
     }
 
     /**
