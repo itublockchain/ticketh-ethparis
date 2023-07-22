@@ -14,9 +14,9 @@ const signer = new utils.SigningKey(getEnv("SERVER_PRIVATE_KEY"));
 const basePath = "/";
 const port = process.env.PORT || 3668;
 
-const app = makeApp(signer, basePath);
-app.listen(port);
-// const mockApp = makeMockApp(signer, basePath);
-// mockApp.listen(port);
+// const app = makeApp(signer, basePath);
+// app.listen(port);
+const mockApp = makeMockApp(signer, basePath);
+mockApp.listen(port);
 
 console.log(`Listening to http://127.0.0.1:3668/`);

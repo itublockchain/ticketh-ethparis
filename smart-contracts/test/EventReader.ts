@@ -3,15 +3,19 @@ import { ethers } from "hardhat";
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 
 const SERVER_ADDRESS = "0xccaec61d44566fAE4bd1bdb47A92C5894bdE4eBF";
-const GATEWAY_URL = "http://localhost:3668/";
+const MACHINE_URL = "http://3.71.204.198:8080/";
+const LOCAL_URL = "http://localhost:3668/";
+const NON_EXISTENT_URL = "http://127.127.127.127:3668/";
+
+const GATEWAY_URL = MACHINE_URL;
 
 describe("EventReader", () => {
     async function deployEventFixture() {
         const HARDHAT_CHAIN_ID = 31337;
         const FAKE_CHAIN_ID = 31338;
 
-        const CORRECT_DOMAIN = ethers.id("Example Domain");
-        const FAKE_DOMAIN = ethers.id(
+        const CORRECT_DOMAIN = ethers.utils.id("Example Domain");
+        const FAKE_DOMAIN = ethers.utils.id(
             "Example Domain 2: Electric Bungaloo"
         );
         const [owner, user] = await ethers.getSigners();
@@ -20,48 +24,43 @@ describe("EventReader", () => {
             "SchemaRegistry"
         );
         const schemaRegistry = await SchemaRegistry.deploy();
-        await schemaRegistry.waitForDeployment();
 
         const EASF = await ethers.getContractFactory("EAS");
-        const eas = await EASF.deploy(await schemaRegistry.getAddress());
-        await eas.waitForDeployment();
+        const eas = await EASF.deploy(schemaRegistry.address);
 
         const schema = "uint256 eventDataType, string name, bytes extraData";
         const EventManager = await ethers.getContractFactory("EventManager");
         const eventManager = await EventManager.deploy(
-            await eas.getAddress(),
+            eas.address,
             owner.address
         );
-        await eventManager.waitForDeployment();
 
         const AttesterResolver = await ethers.getContractFactory(
             "AttesterResolver"
         );
         const attester = await AttesterResolver.deploy(
-            await eas.getAddress(),
-            await eventManager.getAddress()
+            eas.address,
+            eventManager.address
         );
-        await attester.waitForDeployment();
 
         const schemaData: [string, string, boolean] = [
             schema,
-            await attester.getAddress(),
+            attester.address,
             true,
         ];
-        const schemaUid = ethers.keccak256(
-            ethers.solidityPacked(["string", "address", "bool"], schemaData)
+        const schemaUid = ethers.utils.keccak256(
+            ethers.utils.solidityPack(["string", "address", "bool"], schemaData)
         );
 
         await eventManager.initialize(schemaUid);
 
         const EventReader = await ethers.getContractFactory("EventReader");
         const eventReader = await EventReader.deploy(
-            await eventManager.getAddress(),
+            eventManager.address,
             FAKE_CHAIN_ID,
             GATEWAY_URL,
             SERVER_ADDRESS
         );
-        await eventReader.waitForDeployment();
 
         return {
             owner,
@@ -79,6 +78,16 @@ describe("EventReader", () => {
             schemaUid,
         };
     }
+
+    it("Can make a call to the gateway", async () => {
+        const { eventReader, CORRECT_DOMAIN, user } = await loadFixture(
+            deployEventFixture
+        );
+
+        await eventReader.getReputation(CORRECT_DOMAIN, user.address, {
+            ccipReadEnabled: true
+        });
+    });
 
     it("Should declare the schema", async () => {
         const { schemaRegistry, schemaData, schemaUid, owner } =
@@ -149,7 +158,7 @@ describe("EventReader", () => {
         const reputationScore = await eventReader.getReputation(
             CORRECT_DOMAIN,
             user.address,
-            { enableCcipRead: true }
+            { ccipReadEnabled: true }
         );
         expect(reputationScore).to.be.equal(1);
     });

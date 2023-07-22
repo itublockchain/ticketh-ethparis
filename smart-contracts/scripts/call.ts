@@ -11,7 +11,7 @@ async function call() {
         "function getReputation(bytes32 domain, address user) view returns (uint256)"
     ];
 
-    const domain = ethers.id("Hello");
+    const domain = ethers.utils.id("Hello");
     const queryAddress = ethers.Wallet.createRandom().address;
 
     const contract = new ethers.Contract(address, abi, ethers.provider);

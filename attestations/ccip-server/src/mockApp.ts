@@ -1,6 +1,5 @@
 import * as CCIP from "@chainlink/ccip-read-server";
-import * as fs from "fs";
-import { Contract, Wallet, providers, utils } from "ethers";
+import { utils } from "ethers";
 
 const fromHumanAbi = (fragments: ReadonlyArray<string>) =>
     new utils.Interface(fragments).format(utils.FormatTypes.json);
@@ -59,7 +58,7 @@ export function makeMockApp(signer: utils.SigningKey, basePath: string) {
                     ]
                 );
                 const signature = signer.signDigest(messageHash);
-                const sigData = utils.joinSignature(signature)
+                const sigData = utils.joinSignature(signature);
                 return [result, validUntil, sigData];
             },
         },

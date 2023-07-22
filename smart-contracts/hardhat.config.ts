@@ -16,7 +16,9 @@ const config: HardhatUserConfig = {
   solidity: {
     version: "0.8.19",
   },
+  defaultNetwork: "hardhat",
   networks: {
+    hardhat: {},
     sepholia: {
       url: getEnv("SEPHOLIA_RPC_URL"),
       chainId: 11155111,

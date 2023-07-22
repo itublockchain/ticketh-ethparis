@@ -1,4 +1,5 @@
 import { ethers } from "hardhat";
+import { EventReader } from "../typechain-types";
 
 const SEPHOLIA_EAS_ADDRESS = "0xC2679fBD37d54388Ce493F1DB75320D236e1815e";
 const SEPHOLIA_SCHEMA_REGISTRY_ADDRESS =
@@ -66,14 +67,24 @@ async function deployEventReader(
     console.log("Deployed event reader at", await eventReader.getAddress());
 }
 
+async function changeOffchainResolverUrl(address: string, resolverUrl: string) {
+    const [deployer] = await ethers.getSigners();
+    const EventReaderFactory = await ethers.getContractFactory("EventReader");
+    const eventReader: EventReader = EventReaderFactory.attach(address) as EventReader;
+
+    const tx = await eventReader.connect(deployer).setOffchainResolverUrl(resolverUrl);
+    await tx.wait();
+    console.log(tx.hash);
+}
+
 // deployManagerAndAttester();
-deployEventReader(
-    "0xfDCC186855EAcBbcc2a5Ca36570C7782cC5855F9",
-    "http://3.71.204.198:8080/"
-).then(() => {
-    deployEventReader(
-        "0xfDCC186855EAcBbcc2a5Ca36570C7782cC5855F9",
-        "http://3.71.204.198:8080/",
-        123
-    );
-});
+// deployEventReader(
+//     "0xfDCC186855EAcBbcc2a5Ca36570C7782cC5855F9",
+//     "http://3.71.204.198:8080/"
+// ).then(() => {
+//     deployEventReader(
+//         "0xfDCC186855EAcBbcc2a5Ca36570C7782cC5855F9",
+//         "http://3.71.204.198:8080/",
+//         123
+//     );
+// });

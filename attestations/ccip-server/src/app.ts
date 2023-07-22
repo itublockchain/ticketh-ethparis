@@ -5,7 +5,7 @@ const fromHumanAbi = (fragments: ReadonlyArray<string>) =>
     new utils.Interface(fragments).format(utils.FormatTypes.json);
 
 const ccipGatewayAbi = fromHumanAbi([
-    "function resolveEvents(bytes32 domain, address user) view returns (tuple(uint8 eventType, string name, bytes extraData)[])",
+    "function resolveEvents(bytes32 domain, address user) view returns (bytes memory, uint64, bytes memory)",
 ]);
 
 const eventManagerAbi = fromHumanAbi([
@@ -36,13 +36,15 @@ export function makeApp(signer: utils.SigningKey, basePath: string) {
         {
             type: "resolveEvents",
             func: async (args: utils.Result, request) => {
+                console.log("Inside call");
                 const [domain, user] = args;
                 const [providerChainId, providerUrl] = providerDetails.sepholia;
                 const provider = new providers.JsonRpcProvider(
                     providerUrl,
                     providerChainId
                 );
-                const eventManagerAddress = "0xfDCC186855EAcBbcc2a5Ca36570C7782cC5855F9";
+                const eventManagerAddress =
+                    "0xfDCC186855EAcBbcc2a5Ca36570C7782cC5855F9";
                 const eventManager = new Contract(
                     eventManagerAddress,
                     eventManagerAbi,
