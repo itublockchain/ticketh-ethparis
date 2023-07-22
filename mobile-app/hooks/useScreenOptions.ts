@@ -17,7 +17,7 @@ const forFade = ({
 export const useScreenOptions = (): StackNavigationOptions => {
     return {
         headerStyle: {
-            backgroundColor: colors.tertiary,
+            backgroundColor: colors.secondary,
             borderBottomColor: colors.primary,
             borderBottomWidth: 1,
         },
