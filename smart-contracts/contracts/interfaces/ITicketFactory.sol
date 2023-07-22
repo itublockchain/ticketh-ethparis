@@ -4,7 +4,7 @@ pragma solidity ^0.8.19;
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 
 struct Ticket {
-    string domain;
+    bytes32 domain;
     string name;
     uint256 price;
     uint256 deadline;

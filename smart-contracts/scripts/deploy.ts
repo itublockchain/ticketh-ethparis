@@ -4,76 +4,145 @@ import { EventReader } from "../typechain-types";
 const SEPHOLIA_EAS_ADDRESS = "0xC2679fBD37d54388Ce493F1DB75320D236e1815e";
 const SEPHOLIA_SCHEMA_REGISTRY_ADDRESS =
     "0x0a7E2Ff54e76B8E6659aedc9103FB21c038050D0";
+const CCIP_ROUTER = "0xD0daae2231E9CB96b94C8512223533293C3693Bf";
+const LINK_SEPOLIA_ADDRESS = "0x779877A7B0D9E8603169DdbD7836e478b4624789";
 
-async function deployManagerAndAttester() {
+// async function deployManagerAndAttester() {
+//     const [deployer] = await ethers.getSigners();
+
+//     console.log("Deploying event manager");
+//     const schema = "uint256 eventDataType, string name, bytes extraData";
+//     const EventManager = await ethers.getContractFactory("EventManager");
+//     const eventManager = await EventManager.deploy(
+//         SEPHOLIA_EAS_ADDRESS,
+//         deployer.address
+//     );
+//     await eventManager.waitForDeployment();
+//     console.log("Deployed event manager at", await eventManager.getAddress());
+
+//     console.log("Deploying attester resolver");
+//     const AttesterResolver = await ethers.getContractFactory(
+//         "AttesterResolver"
+//     );
+//     const attester = await AttesterResolver.deploy(
+//         SEPHOLIA_EAS_ADDRESS,
+//         await eventManager.getAddress()
+//     );
+//     await attester.waitForDeployment();
+//     console.log("Deployed attester resolver at", await attester.getAddress());
+
+//     const schemaData: [string, string, boolean] = [
+//         schema,
+//         await attester.getAddress(),
+//         true,
+//     ];
+//     const schemaUid = ethers.keccak256(
+//         ethers.solidityPacked(["string", "address", "bool"], schemaData)
+//     );
+//     console.log("Schema UID:", schemaUid);
+
+//     console.log("Initializing event manager");
+//     const tx = await eventManager.initialize(schemaUid);
+//     await tx.wait();
+//     console.log("Initialized event manager");
+// }
+
+// async function deployEventReader(
+//     eventManagerAddress: string,
+//     gatewayUrl: string,
+//     overrideChainId?: number
+// ) {
+//     const chainId = await ethers.provider
+//         .getNetwork()
+//         .then((network) => network.chainId);
+//     const [deployer] = await ethers.getSigners();
+
+//     console.log("Deploying event reader");
+//     const EventReader = await ethers.getContractFactory("EventReader");
+//     const eventReader = await EventReader.deploy(
+//         eventManagerAddress,
+//         overrideChainId ?? chainId,
+//         gatewayUrl,
+//         deployer.address
+//     );
+//     await eventReader.waitForDeployment();
+//     console.log("Deployed event reader at", await eventReader.getAddress());
+// }
+
+// async function changeOffchainResolverUrl(address: string, resolverUrl: string) {
+//     const [deployer] = await ethers.getSigners();
+//     const EventReaderFactory = await ethers.getContractFactory("EventReader");
+//     const eventReader: EventReader = EventReaderFactory.attach(address) as EventReader;
+
+//     const tx = await eventReader.connect(deployer).setOffchainResolverUrl(resolverUrl);
+//     await tx.wait();
+//     console.log(tx.hash);
+// }
+
+async function deployTicketFactory() {
     const [deployer] = await ethers.getSigners();
 
-    console.log("Deploying event manager");
-    const schema = "uint256 eventDataType, string name, bytes extraData";
-    const EventManager = await ethers.getContractFactory("EventManager");
-    const eventManager = await EventManager.deploy(
-        SEPHOLIA_EAS_ADDRESS,
-        deployer.address
-    );
-    await eventManager.waitForDeployment();
-    console.log("Deployed event manager at", await eventManager.getAddress());
+    console.log("Deploying ticket factory");
 
-    console.log("Deploying attester resolver");
-    const AttesterResolver = await ethers.getContractFactory(
-        "AttesterResolver"
-    );
-    const attester = await AttesterResolver.deploy(
-        SEPHOLIA_EAS_ADDRESS,
-        await eventManager.getAddress()
-    );
-    await attester.waitForDeployment();
-    console.log("Deployed attester resolver at", await attester.getAddress());
-
-    const schemaData: [string, string, boolean] = [
-        schema,
-        await attester.getAddress(),
+    const TicketFactory = await ethers.getContractFactory("TicketFactory");
+    const ticketFactory = await TicketFactory.deploy(
         true,
-    ];
-    const schemaUid = ethers.keccak256(
-        ethers.solidityPacked(["string", "address", "bool"], schemaData)
+        "0xfDCC186855EAcBbcc2a5Ca36570C7782cC5855F9",
+        "0x00668C9179B9b95855530e34C3ef945822c775AF"
     );
-    console.log("Schema UID:", schemaUid);
+    await ticketFactory.deployed();
 
-    console.log("Initializing event manager");
-    const tx = await eventManager.initialize(schemaUid);
-    await tx.wait();
-    console.log("Initialized event manager");
+    console.log("Deployed ticket factory at", await ticketFactory.address);
 }
 
-async function deployEventReader(
-    eventManagerAddress: string,
-    gatewayUrl: string,
-    overrideChainId?: number
-) {
-    const chainId = await ethers.provider
-        .getNetwork()
-        .then((network) => network.chainId);
+async function deployMessenger() {
     const [deployer] = await ethers.getSigners();
 
-    console.log("Deploying event reader");
-    const EventReader = await ethers.getContractFactory("EventReader");
-    const eventReader = await EventReader.deploy(
-        eventManagerAddress,
-        overrideChainId ?? chainId,
-        gatewayUrl,
-        deployer.address
+    console.log("Deploying messenger");
+
+    const Messenger = await ethers.getContractFactory("Messenger");
+    const messenger = await Messenger.deploy(
+        CCIP_ROUTER,
+        LINK_SEPOLIA_ADDRESS
     );
-    await eventReader.waitForDeployment();
-    console.log("Deployed event reader at", await eventReader.getAddress());
+    await messenger.deployed();
+
+    console.log("Deployed messenger at", await messenger.address);
 }
 
-async function changeOffchainResolverUrl(address: string, resolverUrl: string) {
+async function setFactorySettings() {
     const [deployer] = await ethers.getSigners();
-    const EventReaderFactory = await ethers.getContractFactory("EventReader");
-    const eventReader: EventReader = EventReaderFactory.attach(address) as EventReader;
+    const TicketFactory = await ethers.getContractFactory("TicketFactory");
+    const factory = TicketFactory.attach("0x21Eb8e80d915dd285a2Ac47c3042C0A4eb3CD924");
 
-    const tx = await eventReader.connect(deployer).setOffchainResolverUrl(resolverUrl);
-    await tx.wait();
+    // await factory.setReceiver("");
+    const tx = await factory.setMessenger("0x7f0a3a0C53AD91Cd8f63ee3555d956F25ab4aFEA");
+    tx.wait();
+}
+
+async function initTicket() {
+    const [deployer] = await ethers.getSigners();
+    const TicketFactory = await ethers.getContractFactory("TicketFactory");
+    const factory = TicketFactory.attach("0x21Eb8e80d915dd285a2Ac47c3042C0A4eb3CD924");
+
+    await factory.initTicket(
+        {
+            "domain": ethers.utils.id("ethglobal"),
+            "name": "paris",
+            "price": ethers.utils.parseEther("0.05"),
+            "deadline": "99999999999",
+            "isRefundable": true
+        })
+
+}
+
+async function buyTicket() {
+    const [deployer] = await ethers.getSigners();
+    const TicketFactory = await ethers.getContractFactory("TicketFactory");
+    const factory = TicketFactory.attach("0x21Eb8e80d915dd285a2Ac47c3042C0A4eb3CD924");
+
+    const tx = await factory.mint("1", { value: ethers.utils.parseEther("0.05") })
+    tx.wait();
     console.log(tx.hash);
 }
 

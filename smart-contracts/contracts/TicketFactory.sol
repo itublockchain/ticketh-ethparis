@@ -32,14 +32,10 @@ contract TicketFactory is ITicketFactory, ERC1155, Ownable {
     constructor(
         bool isMain,
         address manager,
-        address payable atstMessenger,
-        address messageReceiver,
         address readerAddress
     ) ERC1155("") {
         isMainChain = isMain;
         eventManager = IEventManager(manager);
-        messenger = Messenger(atstMessenger);
-        receiver = messageReceiver;
         reader = IEventReader(readerAddress);
     }
 
@@ -66,7 +62,7 @@ contract TicketFactory is ITicketFactory, ERC1155, Ownable {
 
         uint256 price;
         uint256 reputation = reader.getReputation(
-            keccak256(abi.encodePacked(ticket.domain, ticket.name)),
+            ticket.domain,
             msg.sender
         );
 
@@ -105,11 +101,29 @@ contract TicketFactory is ITicketFactory, ERC1155, Ownable {
         attest(ticket, msg.sender);
     }
 
+    function setReceiver(address receiverAddress) external onlyOwner {
+        receiver = receiverAddress;
+    }
+
+    function setMessenger(address payable messengerAddress) external onlyOwner {
+        messenger = Messenger(messengerAddress);
+    }
+
+    /// @dev also set in constructor
+    function setManager(address managerAddress) external onlyOwner {
+        eventManager = IEventManager(managerAddress);
+    }
+
+    /// @dev also set in constructor
+    function setReader(address readerAddress) external onlyOwner {
+        reader = IEventReader(readerAddress);
+    }
+
     /// @inheritdoc ITicketFactory
     function attest(Ticket memory ticket, address user) public onlyMessenger {
         if (isMainChain) {
             eventManager.addEventAttestation(
-                keccak256(abi.encodePacked(ticket.domain, ticket.name)),
+                ticket.domain,
                 user,
                 EventData({
                     eventType: EventDataType.Attendance,
