@@ -43,7 +43,6 @@ export class AttestationResponseDto extends AttestationDto {
 
 export class AttestationCreateDto {
   @ApiProperty()
-  @IsNotEmpty()
   uid: string;
 
   @ApiProperty()

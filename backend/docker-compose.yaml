@@ -1,2 +1,31 @@
 version: '3.3'
 services:
+  ticketh-api:
+    image: asgarovfarhad/ticketh-api:1.0.0
+    container_name: ticketh-api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 8000:8000
+    environment:
+      - DB_PASSWORD=ZQ3DeFPKGmkmFy8ZZLixy6TO6i
+      - DB_USER=root
+      - DB_NAME=ticketh
+      - DB_HOST=ticketh-api.cmzyqeqt1oix.eu-central-1.rds.amazonaws.com
+      - DB_PORT=3306
+      - APP_CORS=*
+      - PORT=8000
+      - APP_VERSION=development
+      - API_VERSION=1
+      - NETWORK_RPC_URL=https://eth-sepolia.g.alchemy.com/v2/2-8TBcAi6kfmES2l0a9sGnjHU0g--HBk
+      - PRIVATE_KEY=173cc47e732bc78f288235438a9c59969728ddde761ce6361976850eadf0c6de
+      - PUBLIC_KEY=0xccaec61d44566fAE4bd1bdb47A92C5894bdE4eBF
+      - ALCHEMY_URL=https://eth-sepolia.g.alchemy.com/v2/2-8TBcAi6kfmES2l0a9sGnjHU0g--HBk
+      - ALCHEMY_API_KEY=2-8TBcAi6kfmES2l0a9sGnjHU0g--HBk
+      - EAS_CONTRACT=0xC2679fBD37d54388Ce493F1DB75320D236e1815e
+      - EAS_SCHEMA_UID=0xa164bdd1b674dc48b4ce331b569d98b83ec442c3a234d5b03864a4529950aa36
+      - NFT_CONTRACT=0xf5cb1a568e5a0ac4e4199662894604a49ca60cd8
+      - PASSKIT_SECRET=20112002Fe
+    platform: linux/amd64
+    restart: always

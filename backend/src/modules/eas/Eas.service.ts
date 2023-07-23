@@ -70,6 +70,20 @@ export class EasService {
         );
       }
 
+      const existingAttestation = await this.attestationRepository.findOne({
+        where: {
+          recipient: attestationDto.recipient,
+          eventId: Number(eventId),
+        },
+      });
+
+      if (existingAttestation != null) {
+        throw new HttpException(
+          'You already have this ticket',
+          HttpStatusCode.BadRequest,
+        );
+      }
+
       const ticketId = uuid();
 
       const signedOffChainAttestation =
