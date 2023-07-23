@@ -1,4 +1,4 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.asgarovf.tickethmobile">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.asgarovf.tickethmobile" xmlns:tools="http://schemas.android.com/tools">
   <uses-permission android:name="android.permission.INTERNET"/>
   <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
   <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
@@ -30,5 +30,15 @@
       </intent-filter>
     </activity>
     <activity android:name="com.facebook.react.devsupport.DevSettingsActivity" android:exported="false"/>
+    <provider android:name="androidx.core.content.FileProvider"
+        android:authorities="com.yourcompany.fileprovider"
+        android:grantUriPermissions="true"
+        android:exported="false"
+        tools:replace="android:authorities">
+        <meta-data
+          android:name="android.support.FILE_PROVIDER_PATHS"
+          android:resource="@xml/passkit_file_paths"
+          tools:replace="android:resource" />
+    </provider>
   </application>
 </manifest>
