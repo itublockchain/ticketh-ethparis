@@ -20,6 +20,25 @@ export const apiGetEventById = async (
     return await axios.get(`/events/${id}`);
 };
 
+export const apiGetHasNft = async (
+    address: string,
+    tokenId: number,
+): Promise<AxiosResponse<{ hasNft: boolean }>> => {
+    return await axios.get(`/nfts/hasNft`, {
+        params: {
+            address,
+            tokenId,
+        },
+    });
+};
+
+export const apiPostPasskitMutation = async (
+    address: string,
+    eventId: string,
+): Promise<AxiosResponse<{ buffer: string }>> => {
+    return await axios.post(`/nfts/passkit`, { address, eventId });
+};
+
 export const apiGetNFTs = async (
     address: string,
 ): Promise<AxiosResponse<OwnedNftsResponse>> => {
