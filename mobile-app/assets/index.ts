@@ -6,3 +6,6 @@ export const WelcomeIllustration = require('./illustrations/welcome.png');
 
 // eslint-disable-next-line
 export const MockEventImage = require('./mock/event.png');
+
+// eslint-disable-next-line
+export const AppleLogo = require('./logo/apple.png');

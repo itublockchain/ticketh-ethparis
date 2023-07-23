@@ -1,3 +1,4 @@
+import { useNavigation } from '@react-navigation/native';
 import {
     WalletConnectModal,
     useWalletConnectModal,
@@ -7,7 +8,7 @@ import { SafeAreaView, Share, Text, View } from 'react-native';
 import { StyleSheet } from 'react-native';
 
 import { Navbar } from '../components';
-import { ADMIN_ADDRESS } from '../constants';
+import { Paths } from '../constants';
 import { WalletConnectConstants } from '../constants/WalletConnectConstants';
 import { useLookupAddress } from '../hooks/useLookupAddress';
 import { copy, creditCard, userFilled } from '../icons';
@@ -18,6 +19,7 @@ import { Button } from '../ui/Button';
 
 export const Account = (): JSX.Element => {
     const { address, provider } = useWalletConnectModal();
+    const navigation = useNavigation();
 
     const logout = async (): Promise<void> => {
         await provider?.disconnect();
@@ -74,17 +76,21 @@ export const Account = (): JSX.Element => {
                             >
                                 Share Address
                             </Button>
-                            {address === ADMIN_ADDRESS && (
-                                <Button
-                                    color="light"
-                                    buttonOverride={{
-                                        style: styles.validate,
-                                    }}
-                                    leftIcon={creditCard}
-                                >
-                                    Validate Ticketh
-                                </Button>
-                            )}
+
+                            <Button
+                                onPress={(): void => {
+                                    navigation.navigate(
+                                        Paths.VALIDATE as never,
+                                    );
+                                }}
+                                color="light"
+                                buttonOverride={{
+                                    style: styles.validate,
+                                }}
+                                leftIcon={creditCard}
+                            >
+                                Validate Ticketh
+                            </Button>
                         </View>
                         <View style={styles.logoutWrapper}>
                             <Button onPress={logout}>Log out</Button>
