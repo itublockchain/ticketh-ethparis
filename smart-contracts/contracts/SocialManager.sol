@@ -9,7 +9,9 @@ import {ISocialManager, TwitterProofData} from "./interfaces/ISocialManager.sol"
 interface CCIPGateway {
     function resolveSocialProof(
         string memory username,
-        string memory postId
+        string memory postId,
+        string memory uuid,
+        uint64 createdAt
     ) external view returns (bytes memory, uint64, bytes memory);
 }
 
@@ -47,8 +49,7 @@ contract SocialManager is Ownable, ISocialManager {
     mapping(address => bool) signers;
 
     /// @dev Verified users
-    mapping (address => bool) public verified;
-
+    mapping(address => bool) public verified;
 
     function setOffchainResolverUrl(
         string memory _offchainResolverUrl
@@ -79,14 +80,13 @@ contract SocialManager is Ownable, ISocialManager {
         initialized = true;
     }
 
-    function verifyTwitterSocial(
-        string memory username,
-        string memory postId
-    ) external {
+    function verifyTwitterSocial(TwitterProofData memory proofData) external {
         bytes memory callData = abi.encodeWithSelector(
             CCIPGateway.resolveSocialProof.selector,
-            username,
-            postId
+            proofData.username,
+            proofData.postId,
+            proofData.uuid,
+            proofData.createdAt
         );
 
         string[] memory urls = new string[](1);
@@ -111,20 +111,19 @@ contract SocialManager is Ownable, ISocialManager {
         );
         require(signers[signer], "SM: Invalid signature");
 
-        (bool success, string memory username, string memory postId) = abi
-            .decode(result, (bool, string, string));
+        (bool success, TwitterProofData memory proofData) = abi.decode(
+            result,
+            (bool, TwitterProofData)
+        );
         require(success, "SM: Invalid social proof");
 
-        makeSocialAttestation(username, postId);
+        makeSocialAttestation(proofData);
     }
 
     function makeSocialAttestation(
-        string memory username,
-        string memory postId
+        TwitterProofData memory proofData
     ) internal returns (bytes32) {
-        bytes memory attestationData = abi.encode(
-            TwitterProofData(username, postId)
-        );
+        bytes memory attestationData = abi.encode(proofData);
         AttestationRequest memory attestationRequest = AttestationRequest(
             schemaUid,
             AttestationRequestData({
@@ -137,6 +136,7 @@ contract SocialManager is Ownable, ISocialManager {
             })
         );
 
+        verified[msg.sender] = true;
         return attestationService.attest(attestationRequest);
     }
 }

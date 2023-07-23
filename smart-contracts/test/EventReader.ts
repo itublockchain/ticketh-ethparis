@@ -84,8 +84,8 @@ describe("EventReader", () => {
             deployEventFixture
         );
 
-        await eventReader.getReputation(CORRECT_DOMAIN, user.address, {
-            ccipReadEnabled: true
+        await eventReader.getReputation([CORRECT_DOMAIN], user.address, {
+            ccipReadEnabled: true,
         });
     });
 
@@ -156,7 +156,7 @@ describe("EventReader", () => {
             });
 
         const reputationScore = await eventReader.getReputation(
-            CORRECT_DOMAIN,
+            [CORRECT_DOMAIN],
             user.address,
             { ccipReadEnabled: true }
         );

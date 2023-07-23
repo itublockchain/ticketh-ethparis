@@ -172,7 +172,21 @@ async function buyTicket() {
     console.log(tx.hash);
 }
 
-getTicket();
+async function deploySocialManager(url: string) {
+    const [deployer] = await ethers.getSigners();
+
+    console.log("Deploying social manager");
+    const SocialManager = await ethers.getContractFactory("SocialManager");
+    const manager = await SocialManager.deploy(
+        SEPHOLIA_EAS_ADDRESS,
+        url,
+        deployer.address,
+    );
+    console.log("Deployed social manager at", manager.address);
+}
+
+// getTicket();
 
 // deployManagerAndAttester();
 // deployEventReader(eventManagerAddress, "http://3.71.204.198:8080/");
+deploySocialManager("http://3.721.204.198:8080/");

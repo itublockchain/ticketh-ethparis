@@ -3,6 +3,7 @@ pragma solidity ^0.8.19;
 
 import {Attestation} from "@ethereum-attestation-service/eas-contracts/contracts/IEAS.sol";
 import {IEventReader} from "./interfaces/IEventReader.sol";
+import {ISocialManager} from "./interfaces/ISocialManager.sol";
 import {EventDataType, EventData, IEventManager} from "./interfaces/IEventManager.sol";
 import {SignatureVerifier} from "./utils/SignatureVerifier.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
@@ -13,7 +14,7 @@ interface CCIPGateway {
         address user
     ) external view returns (bytes memory, uint64, bytes memory);
 
-    function resolveSocial(
+    function resolveTwitter(
         string memory username
     ) external view returns (bytes memory, uint64, bytes memory);
 }
@@ -56,6 +57,9 @@ contract EventReader is Ownable {
     /// @dev Address that manages events
     IEventManager eventManager;
 
+    /// @dev Address that manages social accounts
+    ISocialManager socialManager;
+
     bool useOffchainResolver;
     string offchainResolverUrl;
 
@@ -65,11 +69,13 @@ contract EventReader is Ownable {
 
     constructor(
         IEventManager _eventManager,
+        ISocialManager _socialManager,
         uint256 _mainChainId,
         string memory _offchainResolverUrl,
         address _offchainSigner
     ) {
         eventManager = _eventManager;
+        socialManager = _socialManager;
         useOffchainResolver = _mainChainId != block.chainid;
         offchainResolverUrl = _offchainResolverUrl;
 
@@ -109,7 +115,7 @@ contract EventReader is Ownable {
             if (domain == EVENT_DOMAIN) {
                 totalReputation += getEventReputation(domain, user);
             } else if (domain == TWITTER_DOMAIN) {
-                totalReputation += getTwitterReputation(domain, user);
+                totalReputation += getTwitterReputation(user);
             } else {
                 revert InvalidDomain();
             }
@@ -117,14 +123,10 @@ contract EventReader is Ownable {
         return totalReputation;
     }
 
-    function getTwitterReputation(
-        bytes32 domain,
-        address user
-    ) public view returns (uint256) {
+    function getTwitterReputation(address user) public view returns (uint256) {
         if (useOffchainResolver) {
             bytes memory callData = abi.encodeWithSelector(
-                CCIPGateway.resolveEvents.selector,
-                domain,
+                CCIPGateway.resolveTwitter.selector,
                 user
             );
 
@@ -134,15 +136,14 @@ contract EventReader is Ownable {
                 address(this),
                 urls,
                 callData,
-                EventReader.getTwitterReputationWithProof.selector,
+                // Somehow, explicitly setting it to
+                // EventReader.getTwitterReputationWithProof.selector
+                // gives a compile error.
+                bytes4(0x6d95fc01),
                 callData
             );
         } else {
-            EventData[] memory eventDatas = eventManager.getAllEvents(
-                domain,
-                user
-            );
-            return computeReputation(eventDatas);
+            return socialManager.verified(user) ? twitterVerificationScore : 0;
         }
     }
 

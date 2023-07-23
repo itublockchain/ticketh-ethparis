@@ -6,6 +6,8 @@ const fromHumanAbi = (fragments: ReadonlyArray<string>) =>
 
 const ccipGatewayAbi = fromHumanAbi([
     "function resolveEvents(bytes32 domain, address user) view returns (bytes memory, uint64, bytes memory)",
+    "function resolveTwitterProof(string username, string postId, string uuid, uint64 createdAt) view returns (bytes memory, uint64, bytes memory)",
+    "function resolveTwitter(address user) view returns (bytes memory, uint64, bytes memory)"
 ]);
 
 const eventManagerAbi = fromHumanAbi([
@@ -16,6 +18,23 @@ const eventManagerAbi = fromHumanAbi([
     "function attestations(bytes32, address) view returns (bytes32)",
     "function attestationsLen(bytes32, address) view returns (uint256)",
     "function getAllEvents(bytes32 domain, address user) view returns (tuple(uint8 eventType, string name, bytes extraData)[])",
+]);
+
+const socialManagerAbi = fromHumanAbi([
+    "constructor(address _attestationService, string _offchainResolverUrl, address _offchainSigner) nonpayable",
+    "error OffchainLookup(address sender, string[] urls, bytes callData, bytes4 callbackFunction, bytes extraData)",
+    "event OwnershipTransferred(address indexed previousOwner, address indexed newOwner)",
+    "function attestationService() view returns (address)",
+    "function initialize(bytes32 _schemaUid)",
+    "function offchainResolverUrl() view returns (string)",
+    "function owner() view returns (address)",
+    "function renounceOwnership()",
+    "function schemaUid() view returns (bytes32)",
+    "function setOffchainResolverUrl(string _offchainResolverUrl)",
+    "function transferOwnership(address newOwner)",
+    "function verified(address) view returns (bool)",
+    "function verifyTwitterSocial(tuple(string username, string postId, string uuid, uint64 createdAt) proofData)",
+    "function verifyTwitterSocialWithProof(bytes response, bytes extraData)",
 ]);
 
 const providerDetails: Record<string, [number, string]> = {
@@ -36,7 +55,6 @@ export function makeApp(signer: utils.SigningKey, basePath: string) {
         {
             type: "resolveEvents",
             func: async (args: utils.Result, request) => {
-                console.log("Inside call");
                 const [domain, user] = args;
                 const [providerChainId, providerUrl] = providerDetails.sepholia;
                 const provider = new providers.JsonRpcProvider(
@@ -54,6 +72,93 @@ export function makeApp(signer: utils.SigningKey, basePath: string) {
                 const result = utils.defaultAbiCoder.encode(
                     ["tuple(uint8 eventType, string name, bytes extraData)[]"],
                     [events]
+                );
+
+                // Hash and sign the response
+                const validUntil = (2n ** 64n - 1n).toString(); // U64 max
+                const messageHash = utils.solidityKeccak256(
+                    ["bytes", "address", "uint64", "bytes32", "bytes32"],
+                    [
+                        "0x1900",
+                        request?.to,
+                        validUntil,
+                        utils.keccak256(request?.data || "0x"),
+                        utils.keccak256(result),
+                    ]
+                );
+                const signature = signer.signDigest(messageHash);
+                const sigData = utils.joinSignature(signature);
+                return [result, validUntil, sigData];
+            },
+        },
+        {
+            type: "resolveTwitterProof",
+            func: async (args: utils.Result, request) => {
+                const [username, postId, uuid, createdAt] = args;
+
+                fetch("https://proof-service.next.id/v1/proof", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        action: "create",
+                        platform: "twitter",
+                        identity: username,
+                        publicKey: signer.publicKey,
+                        proofLocation: postId,
+                        extra: [],
+                        uuid,
+                        createdAt: createdAt.toString(),
+                    }),
+                }).then((res) => {
+                    // Check if response is 200ish
+                    if (!res.ok) {
+                        throw new Error("Failed to create proof");
+                    }
+                });
+                const result = utils.defaultAbiCoder.encode(
+                    [
+                        "tuple(string username, string postId, string uuid, uint64 createdAt)",
+                    ],
+                    [{ username, postId, uuid, createdAt }]
+                );
+
+                // Hash and sign the response
+                const validUntil = (2n ** 64n - 1n).toString(); // U64 max
+                const messageHash = utils.solidityKeccak256(
+                    ["bytes", "address", "uint64", "bytes32", "bytes32"],
+                    [
+                        "0x1900",
+                        request?.to,
+                        validUntil,
+                        utils.keccak256(request?.data || "0x"),
+                        utils.keccak256(result),
+                    ]
+                );
+                const signature = signer.signDigest(messageHash);
+                const sigData = utils.joinSignature(signature);
+                return [result, validUntil, sigData];
+            },
+        },
+        {
+            type: "resolveTwitter",
+            func: async (args: utils.Result, request) => {
+                const [user] = args;
+                const [providerChainId, providerUrl] = providerDetails.sepholia;
+                const provider = new providers.JsonRpcProvider(
+                    providerUrl,
+                    providerChainId
+                );
+                const socialManagerAddress =
+                    "0x9819D2eA0e0e8744A9aCA7Dab5697C273a05f147";
+                const socialManager = new Contract(
+                    socialManagerAddress,
+                    socialManagerAbi,
+                    provider
+                );
+                const verified = await socialManager.verified(user);
+                const result = utils.defaultAbiCoder.encode(
+                    ["bool"],
+                    [verified]
                 );
 
                 // Hash and sign the response
