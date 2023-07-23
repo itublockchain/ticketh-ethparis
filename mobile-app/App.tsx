@@ -13,6 +13,7 @@ import { Intro, MyTickeths } from './pages';
 import { Account } from './pages/Account';
 import { Event } from './pages/Event';
 import { Events } from './pages/Events';
+import { Validate } from './pages/Validate';
 import type { EventDto } from './queries/dto';
 import { usePoppins } from './styles/theme';
 import { tickethQueryClient } from './utils/ReactQueryUtils';
@@ -80,6 +81,11 @@ function Main(): JSX.Element {
                         options={screenOptions}
                         name={Paths.EVENT}
                         component={Event}
+                    />
+                    <StackNavigator.Screen
+                        options={screenOptions}
+                        name={Paths.VALIDATE}
+                        component={Validate}
                     />
                 </StackNavigator.Navigator>
             ) : (

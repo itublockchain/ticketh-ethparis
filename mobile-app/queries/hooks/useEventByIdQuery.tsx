@@ -9,7 +9,7 @@ export const useEventByIdQuery = (
     eventId: number,
 ): CustomQueryResult<EventDto, null> => {
     const { data, refetch, ...rest } = useQuery({
-        queryKey: Queries.eventById,
+        queryKey: Queries.eventById + String(eventId),
         queryFn: async (): Promise<EventDto> =>
             apiGetEventById(eventId).then((res) => {
                 return res.data;

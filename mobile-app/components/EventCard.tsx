@@ -5,8 +5,9 @@ import { Alert, Image, StyleSheet, Text, View } from 'react-native';
 import PassKit from 'react-native-passkit-wallet';
 
 import { MockEventImage } from '../assets';
-import { Paths } from '../constants';
+import { AUTH_MESSAGE, Paths } from '../constants';
 import { useLookupAddress } from '../hooks/useLookupAddress';
+import { apiCreateOffchainAttestation } from '../queries';
 import type { EventDto } from '../queries/dto';
 import { useHasNFT } from '../queries/hooks/useHasNFTQuery';
 import { usePasskitMutation } from '../queries/hooks/usePasskitMutation';
@@ -33,12 +34,8 @@ export const EventCard = ({
     const navigation = useNavigation();
     const organizer = useLookupAddress(event.author);
     const mutation = usePasskitMutation();
-
-    const [chainData, setChainData] = useState(null);
-
+    const [chainData, setChainData] = useState(0.1);
     const styles = rawStyles(type);
-
-    const { data: hasNft } = useHasNFT(address as string, event.id);
 
     if (signer == null) return null;
 
@@ -58,11 +55,9 @@ export const EventCard = ({
                         eventId: String(event.id),
                     })
                     .then((res) => {
-                        PassKit.presentAddPassesViewController(res).then(
-                            (res) => {
-                                console.log(res);
-                            },
-                        );
+                        PassKit.addPass(res).then((res) => {
+                            console.log(res);
+                        });
                     })
                     .catch(() => {
                         Alert.alert('Failed to add pass to Apple Wallet');
@@ -70,17 +65,38 @@ export const EventCard = ({
             });
             // Add to apple wallet
         } else {
-            if (hasNft) {
-                Alert.alert('You have already enrolled');
-            } else {
+            const sig = await signer.signMessage(AUTH_MESSAGE);
+
+            if (sig == null) {
+                Alert.alert('Could not get the Ticket');
+                return;
             }
-            // Buy
+
+            try {
+                await apiCreateOffchainAttestation(
+                    event.id,
+                    {
+                        attester: event.author,
+                        recipient: address,
+                        revocable: true,
+                        revocationTime: 0,
+                        expirationTime: 0,
+                        version: 0,
+                    },
+                    sig,
+                );
+                Alert.alert('Minted Successfully');
+            } catch (err: Object) {
+                Alert.alert(
+                    err?.response?.data?.message ?? 'Could not get the Ticket',
+                );
+            }
         }
     };
 
     const buyContent = useMemo(() => {
         if (type === 'detailed') {
-            return `Buy for ${chainData}`;
+            return `Buy for ${chainData} ETH`;
         } else if (type === 'sale') {
             return 'Get ticket';
         } else if (type === 'buyed') {

@@ -3,4 +3,5 @@ export enum Paths {
     ACCOUNT = 'ACCOUNT',
     MY_TICKETHS = 'MY TICKETHS',
     EVENT = 'EVENT',
+    VALIDATE = 'VALIDATE',
 }

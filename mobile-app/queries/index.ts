@@ -1,11 +1,11 @@
-import type { Nft, OwnedNftsResponse } from 'alchemy-sdk';
+import type { OwnedNftsResponse } from 'alchemy-sdk';
 import Axios from 'axios';
 import type { AxiosResponse } from 'axios';
 
 import type { EventDto } from './dto';
 
 export const axios = Axios.create({
-    baseURL: 'http://10.5.45.108:8000/api/v1',
+    baseURL: 'http://3.71.204.198:8000/api/v1',
 });
 
 export const apiGetEvents = async (): Promise<
@@ -45,6 +45,18 @@ export const apiGetNFTs = async (
     return await axios.get('/nfts', {
         params: {
             address,
+        },
+    });
+};
+
+export const apiCreateOffchainAttestation = async (
+    eventId: number,
+    data: Object,
+    signature: string,
+): Promise<Object> => {
+    return await axios.post(`/eas/attestation/${eventId}`, data, {
+        headers: {
+            Authorization: signature,
         },
     });
 };
