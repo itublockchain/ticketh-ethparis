@@ -5,7 +5,9 @@ const SEPHOLIA_EAS_ADDRESS = "0xC2679fBD37d54388Ce493F1DB75320D236e1815e";
 const SEPHOLIA_SCHEMA_REGISTRY_ADDRESS =
     "0x0a7E2Ff54e76B8E6659aedc9103FB21c038050D0";
 const CCIP_ROUTER = "0xD0daae2231E9CB96b94C8512223533293C3693Bf";
+const MUMBAI_CCIP_ROUTER = "0x70499c328e1E2a3c41108bd3730F6670a44595D1";
 const LINK_SEPOLIA_ADDRESS = "0x779877A7B0D9E8603169DdbD7836e478b4624789";
+const LINK_MUMBAI_ADDRESS = "0x779877A7B0D9E8603169DdbD7836e478b4624789";
 
 // async function deployManagerAndAttester() {
 //     const [deployer] = await ethers.getSigners();
@@ -88,7 +90,7 @@ async function deployTicketFactory() {
     const ticketFactory = await TicketFactory.deploy(
         true,
         "0xfDCC186855EAcBbcc2a5Ca36570C7782cC5855F9",
-        "0x00668C9179B9b95855530e34C3ef945822c775AF"
+        "0x063f94b7a9FCF762Ec6554AC7cD6929a7D1736f9"
     );
     await ticketFactory.deployed();
 
@@ -110,13 +112,28 @@ async function deployMessenger() {
     console.log("Deployed messenger at", await messenger.address);
 }
 
+async function deployMessengerMumbai() {
+    const [deployer] = await ethers.getSigners();
+
+    console.log("Deploying messenger");
+
+    const Messenger = await ethers.getContractFactory("Messenger");
+    const messenger = await Messenger.deploy(
+        MUMBAI_CCIP_ROUTER,
+        LINK_MUMBAI_ADDRESS
+    );
+    await messenger.deployed();
+
+    console.log("Deployed messenger at", await messenger.address);
+}
+
 async function setFactorySettings() {
     const [deployer] = await ethers.getSigners();
     const TicketFactory = await ethers.getContractFactory("TicketFactory");
     const factory = TicketFactory.attach("0x21Eb8e80d915dd285a2Ac47c3042C0A4eb3CD924");
 
-    // await factory.setReceiver("");
-    const tx = await factory.setMessenger("0x7f0a3a0C53AD91Cd8f63ee3555d956F25ab4aFEA");
+    const tx = await factory.setReceiver("0x52bDE7a29E0db26E015e28a7BD7F66489734c4F2");
+    // const tx = await factory.setMessenger("0x7f0a3a0C53AD91Cd8f63ee3555d956F25ab4aFEA");
     tx.wait();
 }
 
@@ -125,15 +142,16 @@ async function initTicket() {
     const TicketFactory = await ethers.getContractFactory("TicketFactory");
     const factory = TicketFactory.attach("0x21Eb8e80d915dd285a2Ac47c3042C0A4eb3CD924");
 
-    await factory.initTicket(
+    const tx = await factory.initTicket(
         {
             "domain": ethers.utils.id("ethglobal"),
-            "name": "paris",
-            "price": ethers.utils.parseEther("0.05"),
+            "name": "paris cafe",
+            "price": ethers.utils.parseEther("0.03"),
             "deadline": "99999999999",
             "isRefundable": true
         })
 
+    tx.wait();
 }
 
 async function buyTicket() {
@@ -145,6 +163,8 @@ async function buyTicket() {
     tx.wait();
     console.log(tx.hash);
 }
+
+initTicket();
 
 // deployManagerAndAttester();
 // deployEventReader(

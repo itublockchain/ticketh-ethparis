@@ -23,6 +23,11 @@ const config: HardhatUserConfig = {
       url: getEnv("SEPHOLIA_RPC_URL"),
       chainId: 11155111,
       accounts: [getEnv("DEPLOYER_PRIVATE_KEY")],
+    },
+    mumbai: {
+      url: getEnv("MUMBAI_RPC_URL"),
+      chainId: 80001,
+      accounts: [getEnv("DEPLOYER_PRIVATE_KEY")],
     }
   }
 };
