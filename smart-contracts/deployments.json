@@ -10,6 +10,6 @@
     "mumbai": {
         "eventManager": "0xfDCC186855EAcBbcc2a5Ca36570C7782cC5855F9",
         "attesterResolver": "0x3d5858502455d5D9Fb4bB78843Dfa523329cEC93",
-        "eventReader": "0x3d5858502455d5D9Fb4bB78843Dfa523329cEC93",
+        "eventReader": "0x3d5858502455d5D9Fb4bB78843Dfa523329cEC93"
     }
 }
