@@ -142,25 +142,26 @@ async function initTicket() {
     const [deployer] = await ethers.getSigners();
     const TicketFactory = await ethers.getContractFactory("TicketFactory");
     const factory = TicketFactory.attach(
-        "0x21Eb8e80d915dd285a2Ac47c3042C0A4eb3CD924"
+        "0xB821Ab8D449d3b66e61F448f653eaD40f7e46DF3"
     );
 
     const tx = await factory.initTicket({
         domain: ethers.utils.id("ethglobal"),
-        name: "paris cafe",
-        price: ethers.utils.parseEther("0.03"),
+        name: "paris hackathon",
+        price: ethers.utils.parseEther("0.05"),
         deadline: "99999999999",
         isRefundable: true,
     });
 
     tx.wait();
+    console.log("tx hash is ", tx.hash)
 }
 
 async function buyTicket() {
     const [deployer] = await ethers.getSigners();
     const TicketFactory = await ethers.getContractFactory("TicketFactory");
     const factory = TicketFactory.attach(
-        "0x21Eb8e80d915dd285a2Ac47c3042C0A4eb3CD924"
+        "0xB821Ab8D449d3b66e61F448f653eaD40f7e46DF3"
     );
 
     const tx = await factory.mint("1", {
@@ -170,7 +171,7 @@ async function buyTicket() {
     console.log(tx.hash);
 }
 
-// initTicket();
+getTicket();
 
 // deployManagerAndAttester();
 // deployEventReader(eventManagerAddress, "http://3.71.204.198:8080/");
