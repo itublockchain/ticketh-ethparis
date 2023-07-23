@@ -1,10 +1,13 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Event } from 'src/entities/Event.entity';
+import { EventService } from 'src/modules/event/Event.service';
 import { NFTController } from 'src/modules/nft/NFT.controller';
 import { NFTService } from 'src/modules/nft/NFT.service';
 
 @Module({
-  imports: [],
+  imports: [TypeOrmModule.forFeature([Event])],
   controllers: [NFTController],
-  providers: [NFTService],
+  providers: [NFTService, EventService],
 })
 export class NFTModule {}

@@ -1,0 +1,19 @@
+{
+  "formatVersion": 1,
+  "passTypeIdentifier": "pass.com.passkit.ticketh",
+  "teamIdentifier": "38K4G66MUY",
+  "authenticationToken": "",
+  "relevantDate": "2011-12-08T13:00-08:00",
+  "barcode": {
+    "message": "",
+    "format": "PKBarcodeFormatQR",
+    "messageEncoding": "iso-8859-1"
+  },
+  "organizationName": "organizationName",
+  "description": "description",
+  "foregroundColor": "rgb(0, 0, 0)",
+  "backgroundColor": "rgb(0, 0, 0)",
+  "eventTicket": {
+    "primaryFields": []
+  }
+}
