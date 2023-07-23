@@ -1,11 +1,15 @@
 import { useNavigation } from '@react-navigation/native';
+import { useWalletConnectModal } from '@walletconnect/modal-react-native';
 import { useMemo, useState } from 'react';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { Alert, Image, StyleSheet, Text, View } from 'react-native';
+import PassKit from 'react-native-passkit-wallet';
 
 import { MockEventImage } from '../assets';
 import { Paths } from '../constants';
 import { useLookupAddress } from '../hooks/useLookupAddress';
 import type { EventDto } from '../queries/dto';
+import { useHasNFT } from '../queries/hooks/useHasNFTQuery';
+import { usePasskitMutation } from '../queries/hooks/usePasskitMutation';
 import { colors } from '../styles/colors';
 import { Poppins } from '../styles/theme';
 import { Button } from '../ui/Button';
@@ -25,12 +29,16 @@ export const EventCard = ({
     type = 'sale',
 }: Props): JSX.Element | null => {
     const signer = useSigner();
+    const { address } = useWalletConnectModal();
     const navigation = useNavigation();
     const organizer = useLookupAddress(event.author);
+    const mutation = usePasskitMutation();
 
     const [chainData, setChainData] = useState(null);
 
     const styles = rawStyles(type);
+
+    const { data: hasNft } = useHasNFT(address as string, event.id);
 
     if (signer == null) return null;
 
@@ -39,8 +47,33 @@ export const EventCard = ({
             const args = [Paths.EVENT, { event }] as never;
             navigation.navigate(...args);
         } else if (type === 'buyed') {
+            PassKit.canAddPasses().then((result) => {
+                if (!result) {
+                    Alert.alert('You are not allowed to add pass');
+                    return;
+                }
+                mutation
+                    .mutateAsync({
+                        address: address as string,
+                        eventId: String(event.id),
+                    })
+                    .then((res) => {
+                        PassKit.presentAddPassesViewController(res).then(
+                            (res) => {
+                                console.log(res);
+                            },
+                        );
+                    })
+                    .catch(() => {
+                        Alert.alert('Failed to add pass to Apple Wallet');
+                    });
+            });
             // Add to apple wallet
         } else {
+            if (hasNft) {
+                Alert.alert('You have already enrolled');
+            } else {
+            }
             // Buy
         }
     };
