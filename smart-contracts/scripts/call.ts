@@ -2,10 +2,9 @@ import { ethers } from "hardhat";
 import * as fs from "fs";
 
 const deployments = JSON.parse(fs.readFileSync("deployments.json", "utf8"));
-const address = deployments["eventReader"];
-const addressCcip = deployments["eventReaderCcipEnabled"];
-const addressManager = deployments["eventManager"];
-
+const address = deployments["sepholia"]["eventReader"];
+const addressCcip = deployments["sepholia"]["eventReaderCcipEnabled"];
+const addressManager = deployments["sepholia"]["eventManager"];
 
 async function call() {
     const readerAbi = [
