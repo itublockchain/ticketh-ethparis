@@ -3,6 +3,6 @@
     "attesterResolver": "0x3d5858502455d5D9Fb4bB78843Dfa523329cEC93",
     "eventReader": "0x063f94b7a9FCF762Ec6554AC7cD6929a7D1736f9",
     "eventReaderCcipEnabled": "0xcd873DF53FA89fa51c4Ec5bd4b072FeCd8d13203",
-    "ticketFactory": "0x21Eb8e80d915dd285a2Ac47c3042C0A4eb3CD924",
+    "ticketFactory": "0x52bDE7a29E0db26E015e28a7BD7F66489734c4F2",
     "messenger": "0x7f0a3a0C53AD91Cd8f63ee3555d956F25ab4aFEA"
 }
