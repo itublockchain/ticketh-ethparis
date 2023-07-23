@@ -2,7 +2,7 @@
 pragma solidity ^0.8.19;
 
 import {IEventManager, EventData, EventDataType} from "./interfaces/IEventManager.sol";
-import {IEAS, Attestation, RevocationRequest, RevocationRequestData, AttestationRequest, AttestationRequestData} from "@ethereum-attestation-service/eas-contracts/contracts/IEAS.sol";
+import {IEAS, Attestation, AttestationRequest, AttestationRequestData} from "@ethereum-attestation-service/eas-contracts/contracts/IEAS.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 contract EventManager is IEventManager, Ownable {

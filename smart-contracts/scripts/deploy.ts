@@ -159,6 +159,7 @@ async function initTicket() {
 
 async function buyTicket() {
     const [deployer] = await ethers.getSigners();
+
     const TicketFactory = await ethers.getContractFactory("TicketFactory");
     const factory = TicketFactory.attach(
         "0xB821Ab8D449d3b66e61F448f653eaD40f7e46DF3"
