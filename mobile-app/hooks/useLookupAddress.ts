@@ -13,7 +13,7 @@ export const useLookupAddress = (
     }
 
     const { data } = useQuery({
-        queryKey: Queries.lookupENS,
+        queryKey: Queries.lookupENS + (address as string),
         queryFn: resolveEns,
         cacheTime: Infinity,
         staleTime: Infinity,
