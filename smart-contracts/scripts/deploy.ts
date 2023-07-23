@@ -26,13 +26,13 @@ async function deployManagerAndAttester() {
     );
     const attester = await AttesterResolver.deploy(
         SEPHOLIA_EAS_ADDRESS,
-        eventManagerAddress
+        eventManager.address
     );
     console.log("Deployed attester resolver at", attester.address);
 
     const schemaData: [string, string, boolean] = [
         schema,
-        attesterAddress,
+        attester.address,
         true,
     ];
     const schemaUid = ethers.utils.keccak256(
@@ -173,4 +173,4 @@ async function buyTicket() {
 // initTicket();
 
 // deployManagerAndAttester();
-deployEventReader(eventManagerAddress, "http://3.71.204.198:8080/");
+// deployEventReader(eventManagerAddress, "http://3.71.204.198:8080/");
