@@ -40,6 +40,11 @@ export class Environment {
     'dd6c0e88f09781a788b1454c12761a85a0706f76705d126c9fbeed59249d9e4b'; // Randomly created Private Key to supress errors on initial build;
 
   /**
+   * @dev Public key for mocking wallet
+   */
+  static PUBLIC_KEY: string = process.env.PUBLIC_KEY;
+
+  /**
    * @dev Given web3 provider
    */
   static NETWORK_RPC_URL: string = process.env.NETWORK_RPC_URL;
@@ -80,4 +85,14 @@ export class Environment {
    * @dev EAS Schema Uid
    */
   static EAS_SCHEMA_UID: string = process.env.EAS_SCHEMA_UID;
+
+  /**
+   * @dev Ticket Contract Adress
+   */
+  static NFT_CONTRACT: string = process.env.NFT_CONTRACT;
+
+  /**
+   * @dev Passkit Secret
+   */
+  static PASSKIT_SECRET: string = process.env.PASSKIT_SECRET;
 }
